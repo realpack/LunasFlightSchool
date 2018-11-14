@@ -1,0 +1,10 @@
+{
+	"title"		: "[LFS][simfphys planes?] Experimental air vehicles",
+	"type"		: "vehicle",
+	"tags"		: [ "fun", "realism" ],
+	"ignore"	: [
+		"*.psd",
+		"*.vcproj",
+		"*.svn*"
+	]
+}
