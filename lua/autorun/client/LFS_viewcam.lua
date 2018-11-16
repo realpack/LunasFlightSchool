@@ -232,7 +232,7 @@ hook.Add( "HUDPaint", "LFS_crosshair", function()
 	local Len = Sub:Length()
 	local Dir = Sub:GetNormalized()
 	surface.SetDrawColor( 255, 255, 255, 100 )
-	if Len > 34 then
+	if Len > 34 and not ply:KeyDown( IN_WALK ) then
 		surface.DrawLine( HitPlane.x + Dir.x * 10, HitPlane.y + Dir.y * 10, HitPilot.x - Dir.x * 34, HitPilot.y- Dir.y * 34 )
 	end
 	
