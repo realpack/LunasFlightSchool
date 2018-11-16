@@ -1,0 +1,7 @@
+"VertexlitGeneric"
+{
+
+	"$basetexture" "models\(p47)\seat"
+	"$bumpmap" "models\(p47)\seat_n"
+$nocull "1"
+}

@@ -1,0 +1,7 @@
+"VertexlitGeneric"
+{
+
+	"$basetexture" "models\(p47)\Lbody"
+$selfillum "1"
+
+}

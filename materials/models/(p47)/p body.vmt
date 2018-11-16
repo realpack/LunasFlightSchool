@@ -1,0 +1,6 @@
+"VertexlitGeneric"
+{
+
+	"$basetexture" "models\(p47)\torso"
+	"$bumpmap" "models\(p47)\torso_n"
+}
