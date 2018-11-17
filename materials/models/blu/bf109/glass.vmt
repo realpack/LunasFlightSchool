@@ -8,8 +8,6 @@
 	"$envmaptint" "[ 0.01 0.01 0.01 ]"
 	"$model" 1
 	"$halflambert" 1
-	"$bumpmap" "models/blu/spitfire/tiger_glass_n"
-	
 	"$bumpmap" "models/blu/bf109/normal/glass"
 	
 	"$phong" "1"
