@@ -29,9 +29,10 @@ local smTran = 0
 		return view
 	end
 	
-	local mn, mx = Parent:GetRenderBounds()
-	local radius = ( mn - mx ):Length()
-	local radius = radius + radius * Pod:GetCameraDistance()
+	--local mn, mx = Parent:GetRenderBounds()
+	--local radius = ( mn - mx ):Length()
+	local radius = 550
+	radius = radius + radius * Pod:GetCameraDistance()
 	
 	local TargetOrigin = view.origin - view.angles:Forward() * radius  + view.angles:Up() * radius * 0.2
 	local WallOffset = 4
@@ -204,7 +205,7 @@ hook.Add( "HUDPaint", "LFS_crosshair", function()
 	PaintPlaneHud(Parent)
 	PaintPlaneIdentifier(Parent)
 	
-	local startpos =  Parent:LocalToWorld( Vector(170,0,75) ) 
+	local startpos =  Parent:GetRotorPos()
 	local TracePlane = util.TraceLine( {
 		start = startpos,
 		endpos = (startpos + Parent:GetForward() * 50000),
