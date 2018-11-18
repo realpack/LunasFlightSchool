@@ -37,7 +37,7 @@ if SERVER then
 	
 	function ENT:FollowTarget( followent )
 		local speed = (self:GetStartVelocity() + 3000)
-		local turnrate = 30
+		local turnrate = 45
 		local pos = followent:LocalToWorld( followent:OBBCenter() )  + followent:GetVelocity() * 0.25
 		
 		local pObj = self:GetPhysicsObject()
