@@ -1,7 +1,7 @@
 AddCSLuaFile()
 
-SWEP.Category			= "[LFS]"
-SWEP.PrintName		= "Missile Launcher"
+SWEP.Category			= "Other"
+SWEP.PrintName		= "[LFS] Missile Launcher"
 SWEP.Author			= "Blu"
 SWEP.Slot				= 4
 SWEP.SlotPos			= 9
