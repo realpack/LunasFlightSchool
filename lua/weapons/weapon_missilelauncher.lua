@@ -205,6 +205,9 @@ function SWEP:PrimaryAttack()
 	ent:Spawn()
 	ent:Activate()
 	
+	ent:SetAttacker( self.Owner )
+	ent:SetInflictor( self.Owner:GetActiveWeapon() )
+	
 	local LockOnTarget = self:GetClosestEnt()
 	
 	if IsValid( LockOnTarget ) and self:GetIsLocked() then
