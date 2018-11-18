@@ -1,7 +1,7 @@
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 32 -- don't forget to update this
+simfphys.LFS.VERSION = 33 -- don't forget to update this
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -45,7 +45,7 @@ function meta:lfsGetPlane()
 		
 		if not IsValid( Parent ) then Pod.LFSchecked = false return NULL end
 		
-		if not Parent:GetClass():lower():StartWith( "lunasflightschool" ) then Pod.LFSchecked = false return NULL end
+		if not Parent:GetClass():lower():StartWith( "lunasflightschool" ) or not Parent.LFS then Pod.LFSchecked = false return NULL end
 		
 		Pod.LFSchecked = true
 		Pod.LFSBaseEnt = Parent
