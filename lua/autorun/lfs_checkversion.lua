@@ -1,7 +1,7 @@
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 27 -- don't forget to update this
+simfphys.LFS.VERSION = 29 -- don't forget to update this
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -17,7 +17,7 @@ http.Fetch("https://github.com/Blu-x92/LunasFlightSchool", function(contents,siz
 		print("[LFS][simfphys planes] get the latest version at https://github.com/Blu-x92/LunasFlightSchool")
 		
 		if CLIENT then 
-			timer.Simple(5, function() 
+			timer.Simple(10, function() 
 				chat.AddText( Color( 255, 0, 0 ), "[LFS][simfphys planes] a newer version is available!" )
 				surface.PlaySound( "lfs/notification.ogg" ) 
 			end)
