@@ -1,7 +1,7 @@
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 31 -- don't forget to update this
+simfphys.LFS.VERSION = 32 -- don't forget to update this
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -55,3 +55,5 @@ function meta:lfsGetPlane()
 		return NULL
 	end
 end
+
+if SERVER then util.AddNetworkString( "lfs_failstartnotify" ) end

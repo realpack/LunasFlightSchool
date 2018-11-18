@@ -165,6 +165,12 @@ local function PaintPlaneIdentifier( ent )
 	end
 end
 
+local LFS_TIME_NOTIFY = 0
+net.Receive( "lfs_failstartnotify", function( len )
+	surface.PlaySound( "common/wpn_hudon.wav" )
+	LFS_TIME_NOTIFY = CurTime() + 2
+end )
+
 hook.Add( "HUDPaint", "LFS_crosshair", function()
 	local ply = LocalPlayer()
 	
@@ -233,8 +239,15 @@ hook.Add( "HUDPaint", "LFS_crosshair", function()
 	local Len = Sub:Length()
 	local Dir = Sub:GetNormalized()
 	surface.SetDrawColor( 255, 255, 255, 100 )
-	if Len > 34 and not ply:KeyDown( IN_WALK ) then
-		surface.DrawLine( HitPlane.x + Dir.x * 10, HitPlane.y + Dir.y * 10, HitPilot.x - Dir.x * 34, HitPilot.y- Dir.y * 34 )
+	if Len > 34 then
+		local FailStart = LFS_TIME_NOTIFY > CurTime()
+		if FailStart then
+			surface.SetDrawColor( 255, 0, 0, math.abs( math.cos( CurTime() * 10 ) ) * 255 )
+		end
+		
+		if not ply:KeyDown( IN_WALK ) or FailStart then
+			surface.DrawLine( HitPlane.x + Dir.x * 10, HitPlane.y + Dir.y * 10, HitPilot.x - Dir.x * 34, HitPilot.y- Dir.y * 34 )
+		end
 	end
 	
 	surface.SetDrawColor( 255, 255, 255, 255 )
