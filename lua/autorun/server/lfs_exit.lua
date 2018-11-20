@@ -4,8 +4,6 @@ hook.Add( "PlayerLeaveVehicle", "!!LFS_Exit", function( ply, vehicle )
 	
 	if not IsValid( Pod ) or not IsValid( Parent ) then return end
 	
-	if Parent:GetDriverSeat() ~= Pod then return end
-	
 	local ent = Pod
 	local b_ent = Parent
 	

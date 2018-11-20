@@ -11,8 +11,6 @@ local smTran = 0
 	
 	if not IsValid( Pod ) or not IsValid( Parent ) then return end
 	
-	if Parent:GetDriverSeat() ~= Pod then return end
-	
 	smTran = smTran + ((ply:KeyDown( IN_WALK ) and 0 or 0.8) - smTran) * FrameTime() * 10
 	
 	local view = {}
@@ -21,6 +19,10 @@ local smTran = 0
 	view.drawviewer = true
 	view.angles = ((Parent:GetForward() * smTran + ply:EyeAngles():Forward()) * 0.5):Angle()
 	view.angles.r = 0
+	
+	if Parent:GetDriverSeat() ~= Pod then
+		view.angles = ply:EyeAngles()
+	end
 	
 	if not Pod:GetThirdPersonMode() then
 		
