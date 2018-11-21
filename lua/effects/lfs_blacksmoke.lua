@@ -1,3 +1,4 @@
+--DO NOT EDIT OR REUPLOAD THIS FILE
 
 local Materials = {
 	"particle/smokesprites_0001",

@@ -1,3 +1,4 @@
+--DO NOT EDIT OR REUPLOAD THIS FILE
 
 EFFECT.Mat = Material( "effects/spark" )
 EFFECT.Mat2 = Material( "sprites/light_glow02_add" )
