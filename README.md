@@ -35,21 +35,21 @@ Normal turning is done with the Mouse. It's mouseaim controls. However while in 
 
 # Credits
 
-Cessna 172 Skyhawk - Original Creator Hornetnest - Rigged + 2 extra skins by Luna
+Cessna 172 Skyhawk - Original Creator Hornetnest - rigged + 2 extra skins by Luna
 https://garrysmods.org/download/14222/cessna-172-skyhawk
 
-Spitfire - Original Creator Dr. Matt & SGM - Merged and Rigged by Luna
+Spitfire - Original Creator Dr. Matt & SGM - .vmt fixes, merged and rigged by Luna
 https://steamcommunity.com/sharedfiles/filedetails/?id=139224513
 
-N1 Starfighter & Vulture Droid - Original Creator Liam0102 - Merged, Rigged and Animated by Luna
+N1 Starfighter & Vulture Droid - Original Creator Liam0102 - merged, rigged and animated by Luna
 https://steamcommunity.com/sharedfiles/filedetails/?id=495762961
 
-BF 109 E-7 - Original Creator "damik" - texture/console error fixes and physmodel recompile by Luna (sorry damik but since i had the thing decompiled already anyway i didnt feel like bothering you again)
+BF 109 E-7 - Original Creator damik - texture/console error fixes and physmodel recompile by Luna (sorry damik but since i had the thing decompiled already anyway i didnt feel like bothering you again)
 https://steamcommunity.com/sharedfiles/filedetails/?id=841592696
 
-Republic P-47D Thunderbolt - Original Creator "damik" - texture/console error fixes by Luna
+Republic P-47D Thunderbolt - Original Creator damik - texture/console error fixes by Luna
 https://steamcommunity.com/sharedfiles/filedetails/?id=1353795138
 
-ARC-170 Fighter - Battlefront 2 EA - converted by Salza - Rigged by me
+ARC-170 Fighter - Battlefront 2 EA - converted by Salza - rigged by me
 Droid Tri-Fighter - Battlefront 2 EA - converted by Salza
 
