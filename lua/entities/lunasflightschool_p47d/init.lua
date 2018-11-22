@@ -28,7 +28,7 @@ function ENT:PrimaryAttack()
 	bullet.Src 	= self:LocalToWorld( fP[self.NumPrim] )
 	bullet.Dir 	= self:LocalToWorldAngles( Angle(-0.5,(fP[self.NumPrim].y > 0 and -2 or 2),0) ):Forward()
 	bullet.Spread 	= Vector( 0.015,  0.015, 0 )
-	bullet.Tracer	= 1
+	bullet.Tracer	= 3
 	bullet.TracerName	= "lfs_tracer_green"
 	bullet.Force	= 100
 	bullet.HullSize 	= 10
