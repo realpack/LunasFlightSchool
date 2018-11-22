@@ -136,6 +136,7 @@ function ENT:Think()
 	self:RunEngine()
 	self:CalcFlight()
 	self:PrepExplode()
+	self:RechargeShield()
 	
 	self:NextThink( CurTime() )
 	
@@ -822,13 +823,67 @@ function ENT:dOwner( eEnt )
 	end
 end
 
+function ENT:CanRechargeShield()
+	self.NextShieldRecharge = self.NextShieldRecharge or 0
+	return self.NextShieldRecharge < CurTime()
+end
+
+function ENT:SetNextShieldRecharge( nDelay )
+	if not isnumber( nDelay ) then return end
+	
+	self.NextShieldRecharge = CurTime() + nDelay
+end
+
+function ENT:RechargeShield()
+	local MaxShield = self:GetMaxShield()
+	
+	if MaxShield <= 0 then return end
+	if not self:CanRechargeShield() then return end
+	
+	local Cur = self:GetShield()
+	local Rate = FrameTime() * 30
+	
+	self:SetShield( Cur + math.Clamp(MaxShield - Cur,-Rate,Rate) )
+end
+
+function ENT:TakeShieldDamage( Damage )
+	local Cur = self:GetShield()
+	local New = math.Clamp( Cur - Damage , 0, self:GetMaxHP()  )
+	
+	self:SetShield( New )
+end
+
 function ENT:OnTakeDamage( dmginfo )
 	self:TakePhysicsDamage( dmginfo )
 	
+	local Damage = dmginfo:GetDamage()
 	local CurHealth = self:GetHP()
-	local NewHealth = math.Clamp( CurHealth - dmginfo:GetDamage() , 0, self:GetMaxHP()  )
+	local NewHealth = math.Clamp( CurHealth - Damage , 0, self:GetMaxHP()  )
 	
-	self:SetHP( NewHealth )
+	if dmginfo:IsBulletDamage() or dmginfo:IsDamageType( DMG_AIRBOAT )  then
+		local dmgNormal = -dmginfo:GetDamageForce():GetNormalized() 
+		
+		self:SetNextShieldRecharge( 3 )
+		
+		if self:GetMaxShield() > 0 and self:GetShield() > 0 then
+			dmginfo:SetDamagePosition( dmginfo:GetDamagePosition() + dmgNormal * 250 ) 
+			
+			net.Start("lfs_shieldhit")
+				net.WriteVector( dmginfo:GetDamagePosition() )
+			net.Broadcast()
+			
+			self:TakeShieldDamage( Damage )
+		else
+			local effectdata = EffectData()
+				effectdata:SetOrigin( dmginfo:GetDamagePosition() )
+				effectdata:SetNormal( dmgNormal )
+			util.Effect( "MetalSpark", effectdata )
+			
+			self:SetHP( NewHealth )
+		end
+	else
+		self:SetHP( NewHealth )
+	end
 	
 	if NewHealth == 0 then
 		if not self:IsDestroyed() then

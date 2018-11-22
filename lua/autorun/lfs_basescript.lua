@@ -3,7 +3,7 @@
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 45 -- note to self:  don't forget to update this
+simfphys.LFS.VERSION = 46 -- note to self:  don't forget to update this
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -55,6 +55,7 @@ if SERVER then
 	end
 	
 	util.AddNetworkString( "lfs_failstartnotify" )
+	util.AddNetworkString( "lfs_shieldhit" )
 	
 	hook.Add( "PlayerLeaveVehicle", "!!LFS_Exit", function( ply, vehicle )
 		local Pod = ply:GetVehicle()
@@ -371,6 +372,15 @@ if CLIENT then
 	net.Receive( "lfs_failstartnotify", function( len )
 		surface.PlaySound( "common/wpn_hudon.wav" )
 		LFS_TIME_NOTIFY = CurTime() + 2
+	end )
+	
+	net.Receive( "lfs_shieldhit", function( len )
+		local Pos = net.ReadVector()
+		if isvector( Pos ) then
+			local effectdata = EffectData()
+				effectdata:SetOrigin( Pos )
+			util.Effect( "lfs_shield_deflect", effectdata )
+		end
 	end )
 
 	hook.Add( "HUDPaint", "LFS_crosshair", function()

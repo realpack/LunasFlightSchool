@@ -62,6 +62,7 @@ ENT.MaxTurnYaw = 600 -- max turning force in yaw, lower this value if you encoun
 ENT.MaxTurnRoll = 600 -- max turning force in roll, lower this value if you encounter spazz
 
 ENT.MaxHealth = 450
+--ENT.MaxShield = 200  -- uncomment this if you want to use deflector shields. Dont use excessive amounts because it regenerates.
 
 --ENT.Stability = 0.7   -- if you uncomment this the plane will always be able to turn at maximum performance. This causes MaxPerfVelocity to get ignored
 ENT.MaxStability = 0.7 -- lower this value if you encounter spazz. You can increase this up to 1 to aid turning performance at MaxPerfVelocity-speeds but be careful

@@ -58,16 +58,6 @@ function ENT:PrimaryAttack()
 	bullet.AmmoType = "Pistol"
 	bullet.Callback = function(att, tr, dmginfo)
 		dmginfo:SetDamageType(DMG_AIRBOAT)
-		
-		if IsValid( tr.Entity ) then
-			if tr.Entity.LFS then
-				local effectdata = EffectData()
-				effectdata:SetOrigin( tr.HitPos )
-				effectdata:SetNormal( tr.HitNormal * 0.25 )
-				effectdata:SetRadius( 2 )
-				util.Effect( "cball_bounce", effectdata, true, true )
-			end
-		end
 	end
 	self:FireBullets( bullet )
 	

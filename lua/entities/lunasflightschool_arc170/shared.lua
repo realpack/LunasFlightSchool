@@ -49,12 +49,13 @@ ENT.MaxTurnRoll = 300
 
 ENT.MaxPerfVelocity = 1500
 
-ENT.MaxHealth = 2200
+ENT.MaxHealth = 1600
+ENT.MaxShield = 600
 
 ENT.Stability = 0.7
 
 ENT.MaxPrimaryAmmo = 1000
-ENT.MaxSecondaryAmmo = 8
+ENT.MaxSecondaryAmmo = 6
 
 sound.Add( {
 	name = "ARC170_FIRE",

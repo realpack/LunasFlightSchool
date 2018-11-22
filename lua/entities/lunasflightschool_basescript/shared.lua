@@ -52,6 +52,7 @@ ENT.MaxTurnRoll = 300
 ENT.MaxPerfVelocity = 2600
 
 ENT.MaxHealth = 1000
+ENT.MaxShield = 0
 
 ENT.MaxPrimaryAmmo = -1
 ENT.MaxSecondaryAmmo = -1
@@ -75,6 +76,8 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Float",5, "RotRoll" )
 	self:NetworkVar( "Float",6, "HP", { KeyName = "health", Edit = { type = "Float", order = 2,min = 0, max = self.MaxHealth, category = "Misc"} } )
 	
+	self:NetworkVar( "Float",7, "Shield" )
+	
 	self:NetworkVar( "Int",0, "AmmoPrimary", { KeyName = "primaryammo", Edit = { type = "Int", order = 3,min = 0, max = self.MaxPrimaryAmmo, category = "Weapons"} } )
 	self:NetworkVar( "Int",1, "AmmoSecondary", { KeyName = "secondaryammo", Edit = { type = "Int", order = 4,min = 0, max = self.MaxSecondaryAmmo, category = "Weapons"} } )
 
@@ -85,9 +88,14 @@ function ENT:SetupDataTables()
 		
 		self:SetAITEAM( self.AITEAM )
 		self:SetHP( self.MaxHealth )
+		self:SetShield( self.MaxShield )
 		self:SetAmmoPrimary( self:GetMaxAmmoPrimary() )
 		self:SetAmmoSecondary( self:GetMaxAmmoSecondary() )
 	end
+end
+
+function ENT:GetMaxShield()
+	return isnumber( self.MaxShield ) and self.MaxShield or 0
 end
 
 function ENT:GetMaxAmmoPrimary()

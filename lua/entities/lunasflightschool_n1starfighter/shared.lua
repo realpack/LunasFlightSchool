@@ -41,12 +41,13 @@ ENT.MaxTurnRoll = 350
 
 ENT.MaxPerfVelocity = 1500
 
-ENT.MaxHealth = 850
+ENT.MaxHealth = 450
+ENT.MaxShield = 400
 
 ENT.Stability = 0.7
 
 ENT.MaxPrimaryAmmo = 400
-ENT.MaxSecondaryAmmo = 8
+ENT.MaxSecondaryAmmo = 10
 
 sound.Add( {
 	name = "N1_FIRE",
