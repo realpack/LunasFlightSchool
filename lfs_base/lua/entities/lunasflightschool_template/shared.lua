@@ -30,15 +30,15 @@ ENT.GibModels = {
 
 ENT.AITEAM = 1 -- 0 = FFA  1 = bad guys  2 = good guys
 
-ENT.Mass = 500 -- lower this value if you encounter spazz
-ENT.Inertia = Vector(15000,15000,15000) -- you must increase this when you increase mass or it will spazz
+ENT.Mass = 800 -- lower this value if you encounter spazz
+ENT.Inertia = Vector(20000,20000,20000) -- you must increase this when you increase mass or it will spazz
 ENT.Drag = 1 -- drag is a good air brake but it will make diving speed worse
 
 ENT.SeatPos = Vector(0,5,0)
 ENT.SeatAng = Angle(0,-90,0)
 
  -- these wheels are invisible spherical entities
-ENT.WheelMass = 300 -- wheel mass is 1 when the landing gear is retracted
+ENT.WheelMass = 200 -- wheel mass is 1 when the landing gear is retracted
 ENT.WheelRadius = 15
 ENT.WheelPos_L = Vector(50,50,-10)
 ENT.WheelPos_R = Vector(50,-50,-10)

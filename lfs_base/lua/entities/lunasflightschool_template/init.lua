@@ -66,16 +66,16 @@ end
 
 function ENT:OnEngineStarted()
 	--[[ play engine start sound? ]]--
-	self:EmitSound( "lfs/bf109/start.wav" )
+	self:EmitSound( "vehicles/airboat/fan_motor_start1.wav" )
 end
 
 function ENT:OnEngineStopped()
 	--[[ play engine stop sound? ]]--
-	self:EmitSound( "lfs/bf109/stop.wav" )
+	self:EmitSound( "vehicles/airboat/fan_motor_shut_off1.wav" )
 end
 
 function ENT:OnLandingGearToggled( bOn )
-	self:EmitSound( "lfs/bf109/gear.wav" )
+	self:EmitSound( "vehicles/tank_readyfire1.wav" )
 	
 	if bOn then
 		--[[ set bodygroup of landing gear down? ]]--
