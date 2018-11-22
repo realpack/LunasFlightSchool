@@ -848,7 +848,7 @@ end
 
 function ENT:TakeShieldDamage( Damage )
 	local Cur = self:GetShield()
-	local New = math.Clamp( Cur - Damage , 0, self:GetMaxHP()  )
+	local New = math.Clamp( Cur - Damage , 0, self:GetMaxShield()  )
 	
 	self:SetShield( New )
 end
