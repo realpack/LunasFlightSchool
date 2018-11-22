@@ -81,13 +81,13 @@ end
 function ENT:TakePrimaryAmmo( amount )
 	amount = amount or 1
 	
-	self:SetAmmoPrimary( math.max(self:GetAmmoPrimary() - 1,0) )
+	self:SetAmmoPrimary( math.max(self:GetAmmoPrimary() - amount,0) )
 end
 
 function ENT:TakeSecondaryAmmo( amount )
 	amount = amount or 1
 	
-	self:SetAmmoSecondary( math.max(self:GetAmmoSecondary() - 1,0) )
+	self:SetAmmoSecondary( math.max(self:GetAmmoSecondary() - amount,0) )
 end
 
 function ENT:PrimaryAttack()
