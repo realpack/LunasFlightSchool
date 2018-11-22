@@ -2,7 +2,7 @@
 lua scripted planes for gmod. Also known as "simfphys planes"
 
 # Installation
-Put the folder called "LunasFlightSchool" into ?:\...\Steam\steamapps\common\GarrysMod\garrysmod\addons
+Put the folders called "lfs_base" and "lfs_base_content" into ?:\...\Steam\steamapps\common\GarrysMod\garrysmod\addons
 Vehicles can then be found in your Entities tab under [LFS]. An special Missile launcher can be found in your Weapons tab under "Other"
 
 # Controls (Default)
