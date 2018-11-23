@@ -94,7 +94,7 @@ if SERVER then
 							self.spawnedvehicle:SetAITEAM( self:GetTeamOverride() )
 						end
 						
-						PhysObj = self.spawnedvehicle:GetPhysicsObject()
+						local PhysObj = self.spawnedvehicle:GetPhysicsObject()
 						
 						if IsValid( PhysObj ) then
 							PhysObj:SetVelocityInstantaneous( self:GetRight() * 1000 )
