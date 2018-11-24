@@ -5,7 +5,7 @@ simfphys.LFS = {} -- lets add another table for this project. We will be storing
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.VERSION = 54 -- note to self:  don't forget to update this
+simfphys.LFS.VERSION = 55 -- note to self:  don't forget to update this
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -15,12 +15,12 @@ function simfphys.LFS:PlanesGetAll()
 	local Time = CurTime()
 	
 	if simfphys.LFS.NextPlanesGetAll < Time then
-		simfphys.LFS.NextPlanesGetAll = Time + 1
+		simfphys.LFS.NextPlanesGetAll = Time + FrameTime()
 		
 		table.Empty( simfphys.LFS.PlanesStored )
 		
 		local Index = 0
-		
+
 		for _,v in pairs( ents.GetAll() ) do
 			if v.LFS then
 				Index = Index + 1

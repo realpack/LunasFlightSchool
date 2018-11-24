@@ -84,7 +84,7 @@ function SWEP:Think()
 		self.nextFind = curtime + 3
 		self.FoundVehicles = {}
 		
-		for k, v in pairs( ents.FindByClass( "lunasflightschool_*" ) ) do
+		for k, v in pairs( simfphys.LFS:PlanesGetAll() ) do
 			if v.LFS then
 				table.insert( self.FoundVehicles, v )
 			end
