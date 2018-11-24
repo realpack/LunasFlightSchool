@@ -5,7 +5,7 @@ simfphys.LFS = {} -- lets add another table for this project. We will be storing
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.VERSION = 55 -- note to self:  don't forget to update this
+simfphys.LFS.VERSION = 56 -- note to self:  don't forget to update this
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -84,6 +84,8 @@ if SERVER then
 	util.AddNetworkString( "lfs_shieldhit" )
 	
 	hook.Add( "PlayerLeaveVehicle", "!!LFS_Exit", function( ply, vehicle )
+		if not ply:IsPlayer() then return end
+		
 		local Pod = ply:GetVehicle()
 		local Parent = ply:lfsGetPlane()
 		
