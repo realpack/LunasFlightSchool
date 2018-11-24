@@ -3,11 +3,35 @@
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 53 -- note to self:  don't forget to update this
+simfphys.LFS.PlanesStored = {}
+simfphys.LFS.NextPlanesGetAll = 0
+simfphys.LFS.VERSION = 54 -- note to self:  don't forget to update this
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
 end
+
+function simfphys.LFS:PlanesGetAll()
+	local Time = CurTime()
+	
+	if simfphys.LFS.NextPlanesGetAll < Time then
+		simfphys.LFS.NextPlanesGetAll = Time + 1
+		
+		table.Empty( simfphys.LFS.PlanesStored )
+		
+		local Index = 0
+		
+		for _,v in pairs( ents.GetAll() ) do
+			if v.LFS then
+				Index = Index + 1
+				simfphys.LFS.PlanesStored[Index] = v
+			end
+		end
+	end
+	
+	return simfphys.LFS.PlanesStored
+end
+
 
 local meta = FindMetaTable( "Player" )
 
@@ -28,7 +52,7 @@ function meta:lfsGetPlane()
 		
 		if not IsValid( Parent ) then Pod.LFSchecked = false return NULL end
 		
-		if not Parent:GetClass():lower():StartWith( "lunasflightschool" ) or not Parent.LFS then Pod.LFSchecked = false return NULL end
+		if not Parent.LFS then Pod.LFSchecked = false return NULL end
 		
 		Pod.LFSchecked = true
 		Pod.LFSBaseEnt = Parent
@@ -247,7 +271,7 @@ if CLIENT then
 			endpos = TargetOrigin,
 			filter = function( e )
 				local c = e:GetClass()
-				local collide = not c:StartWith( "prop_physics" ) and not c:StartWith( "prop_dynamic" ) and not c:StartWith( "prop_ragdoll" ) and not e:IsVehicle() and not c:StartWith( "gmod_" ) and not c:StartWith( "player" ) and not c:lower():StartWith( "lunasflightschool" )
+				local collide = not c:StartWith( "prop_physics" ) and not c:StartWith( "prop_dynamic" ) and not c:StartWith( "prop_ragdoll" ) and not e:IsVehicle() and not c:StartWith( "gmod_" ) and not c:StartWith( "player" ) and not e.LFS
 				
 				return collide
 			end,
@@ -333,7 +357,7 @@ if CLIENT then
 	local function PaintPlaneIdentifier( ent )
 		if NextFind < CurTime() then
 			NextFind = CurTime() + 3
-			AllPlanes = ents.FindByClass( "lunasflightschool_*" )
+			AllPlanes = simfphys.LFS:PlanesGetAll()
 		end
 		
 		local MyPos = ent:GetPos()
@@ -372,7 +396,7 @@ if CLIENT then
 
 	local LFS_TIME_NOTIFY = 0
 	net.Receive( "lfs_failstartnotify", function( len )
-		surface.PlaySound( "common/wpn_hudon.wav" )
+		surface.PlaySound( "common/wpn_hudon.ogg" )
 		LFS_TIME_NOTIFY = CurTime() + 2
 	end )
 	

@@ -1058,7 +1058,7 @@ function ENT:AIGetTarget()
 		end
 	end
 	
-	self.FoundPlanes = ents.FindByClass( "lunasflightschool_*" )
+	self.FoundPlanes = simfphys.LFS:PlanesGetAll()
 	
 	for _, v in pairs( self.FoundPlanes ) do
 		if IsValid( v ) and v ~= self and v.LFS then
