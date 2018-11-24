@@ -1029,27 +1029,29 @@ function ENT:AIGetTarget()
 	local MyPos = self:GetPos()
 	local MyTeam = self:GetAITEAM()
 	
-	for _, v in pairs( players ) do
-		if IsValid( v ) then
-			if v:Alive() then
-				local Dist = (v:GetPos() - MyPos):Length()
-				if Dist < TargetDistance then
-					local Plane = v:lfsGetPlane()
-					
-					if IsValid( Plane ) then
-						if Plane:IsLineOfSightClear( self ) and not Plane:IsDestroyed() and Plane ~= self then
-							local HisTeam = Plane:GetAITEAM()
-							if HisTeam ~= MyTeam or HisTeam == 0 then
-								ClosestTarget = v
-								TargetDistance = Dist
+	if not simfphys.LFS.IgnorePlayers then
+		for _, v in pairs( players ) do
+			if IsValid( v ) then
+				if v:Alive() then
+					local Dist = (v:GetPos() - MyPos):Length()
+					if Dist < TargetDistance then
+						local Plane = v:lfsGetPlane()
+						
+						if IsValid( Plane ) then
+							if Plane:IsLineOfSightClear( self ) and not Plane:IsDestroyed() and Plane ~= self then
+								local HisTeam = Plane:GetAITEAM()
+								if HisTeam ~= MyTeam or HisTeam == 0 then
+									ClosestTarget = v
+									TargetDistance = Dist
+								end
 							end
-						end
-					else
-						local HisTeam = v:lfsGetAITeam()
-						if v:IsLineOfSightClear( self ) then
-							if HisTeam ~= MyTeam or HisTeam == 0 then
-								ClosestTarget = v
-								TargetDistance = Dist
+						else
+							local HisTeam = v:lfsGetAITeam()
+							if v:IsLineOfSightClear( self ) then
+								if HisTeam ~= MyTeam or HisTeam == 0 then
+									ClosestTarget = v
+									TargetDistance = Dist
+								end
 							end
 						end
 					end
@@ -1196,6 +1198,8 @@ function ENT:RunAI()
 						
 						self.TargetRPM = self:GetMaxRPM()
 					end
+				else
+					self.TargetRPM = self:GetMaxRPM()
 				end
 			else
 				self.TargetRPM = self:GetMaxRPM()

@@ -41,7 +41,7 @@ https://garrysmods.org/download/14222/cessna-172-skyhawk
 Spitfire - Original Creator Dr. Matt & SGM - .vmt fixes, merged and rigged by Luna
 https://steamcommunity.com/sharedfiles/filedetails/?id=139224513
 
-N1 Starfighter & Vulture Droid - Original Creator Liam0102 - merged, rigged and animated by Luna
+N1 Starfighter - Original Creator Liam0102 - merged, rigged and animated by Luna
 https://steamcommunity.com/sharedfiles/filedetails/?id=495762961
 
 BF 109 E-7 - Original Creator damik - texture/console error fixes and physmodel recompile by Luna (sorry damik but since i had the thing decompiled already anyway i didnt feel like bothering you again)
@@ -52,4 +52,5 @@ https://steamcommunity.com/sharedfiles/filedetails/?id=1353795138
 
 ARC-170 Fighter - Battlefront 2 EA - converted by Salza - rigged by me
 Droid Tri-Fighter - Battlefront 2 EA - converted by Salza
+Vulture Droid - Battlefront 2 EA - converted by Salza
 

@@ -4,21 +4,31 @@ AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "cl_init.lua" )
 include("shared.lua")
 
+function ENT:SpawnFunction( ply, tr, ClassName )
+
+	if not tr.Hit then return end
+
+	local ent = ents.Create( ClassName )
+	ent:SetPos( tr.HitPos + tr.HitNormal * 70 )
+	ent:Spawn()
+	ent:Activate()
+
+	return ent
+
+end
+
 
 function ENT:RunOnSpawn()
-	if not self:GetEngineActive() then
-		self:PlayAnimation( "landing" )
-	end
 end
 
 function ENT:PrimaryAttack()
-	if not self:CanPrimaryAttack() or not self:GetEngineActive() then return end
+	if not self:CanPrimaryAttack() then return end
 
 	self:EmitSound( "VULTURE_FIRE" )
 	
 	self:SetNextPrimary( 0.08 )
 	
-	local fP = { Vector(27.95,108.99,115.03), Vector(29.15,-110.55,103.67), Vector(29.15,110.55,103.67),Vector(27.95,-108.99,115.03) }
+	local fP = { Vector(56.82,105.6,4), Vector(56.82,-105.6,-4), Vector(56.82,105.6,-4),Vector(56.82,-105.6,4) }
 
 	self.NumPrim = self.NumPrim and self.NumPrim + 1 or 1
 	if self.NumPrim > 4 then self.NumPrim = 1 end
@@ -41,7 +51,7 @@ function ENT:PrimaryAttack()
 	bullet.Dir 	= (TracePlane.HitPos - bullet.Src):GetNormalized()
 	bullet.Spread 	= Vector( 0.02,  0.02, 0 )
 	bullet.Tracer	= 1
-	bullet.TracerName	= "lfs_laser_red_large"
+	bullet.TracerName	= "lfs_laser_red"
 	bullet.Force	= 100
 	bullet.HullSize 	= 40
 	bullet.Damage	= 25
@@ -56,7 +66,7 @@ function ENT:PrimaryAttack()
 end
 
 function ENT:SecondaryAttack()
-	if not self:CanPrimaryAttack() or not self:GetEngineActive() then return end
+	if not self:CanPrimaryAttack() then return end
 	
 	self:SetNextPrimary( 0.16 )
 
@@ -79,7 +89,7 @@ function ENT:SecondaryAttack()
 		local Mirror = false
 		for i = 0,1 do
 			local M = Mirror and 1 or -1
-			local Pos = Vector(29.15,110.55 * M,104 + (self.MirrorSec and 12 or 0))
+			local Pos = Vector(56.82,105.6 * M,(self.MirrorSec and -4 or 4))
 			
 			local bullet = {}
 			bullet.Num 	= 1
@@ -238,11 +248,7 @@ function ENT:HandleWeapons(Fire1, Fire2)
 end
 
 function ENT:OnEngineStarted()
-	self:PlayAnimation( "takeoff" )
 end
 
 function ENT:OnEngineStopped()
-	if not self:IsDestroyed() then
-		self:PlayAnimation( "landing" )
-	end
 end

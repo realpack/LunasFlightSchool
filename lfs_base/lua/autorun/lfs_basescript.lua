@@ -5,7 +5,10 @@ simfphys.LFS = {} -- lets add another table for this project. We will be storing
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.VERSION = 56 -- note to self:  don't forget to update this
+simfphys.LFS.VERSION = 57 -- note to self:  don't forget to update this
+
+local cVar = GetConVar( "ai_ignoreplayers" )
+simfphys.LFS.IgnorePlayers = cVar and cVar:GetBool() or false
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -32,6 +35,9 @@ function simfphys.LFS:PlanesGetAll()
 	return simfphys.LFS.PlanesStored
 end
 
+cvars.AddChangeCallback( "ai_ignoreplayers", function( convar, oldValue, newValue ) 
+	simfphys.LFS.IgnorePlayers = tonumber( newValue ) ~=0
+end)
 
 local meta = FindMetaTable( "Player" )
 

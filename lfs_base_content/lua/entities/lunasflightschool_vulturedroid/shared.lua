@@ -11,7 +11,7 @@ ENT.Category = "[LFS]"
 ENT.Spawnable		= true
 ENT.AdminSpawnable		= false
 
-ENT.MDL = "models/blu/vulturedroid.mdl"
+ENT.MDL = "models/salza/vulture_droid.mdl"
 
 ENT.AITEAM = 1
 
@@ -19,17 +19,17 @@ ENT.Mass = 2000
 ENT.Inertia = Vector(150000,150000,150000)
 ENT.Drag = -1
 
-ENT.SeatPos = Vector(-30,0,113)
+ENT.SeatPos = Vector(-28,0,10)
 ENT.SeatAng = Angle(0,-90,0)
 
 ENT.IdleRPM = 1
 ENT.MaxRPM = 2800
 ENT.LimitRPM = 3000
 
-ENT.RotorPos = Vector(40,0,115)
-ENT.WingPos = Vector(100,0,115)
-ENT.ElevatorPos = Vector(-300,0,135)
-ENT.RudderPos = Vector(-300,0,135)
+ENT.RotorPos = Vector(40,0,0)
+ENT.WingPos = Vector(100,0,0)
+ENT.ElevatorPos = Vector(-300,0,0)
+ENT.RudderPos = Vector(-300,0,0)
 
 ENT.MaxVelocity = 2150
 
