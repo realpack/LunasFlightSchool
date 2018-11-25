@@ -47,7 +47,7 @@ https://steamcommunity.com/sharedfiles/filedetails/?id=495762961
 BF 109 E-7 - Original Creator damik - texture/console error fixes and physmodel recompile by Luna (sorry damik but since i had the thing decompiled already anyway i didnt feel like bothering you again)
 https://steamcommunity.com/sharedfiles/filedetails/?id=841592696
 
-Republic P-47D Thunderbolt - Original Creator damik - texture/console error fixes by Luna
+Republic P-47D Thunderbolt - Original Creator damik - texture/console error fixes by Luna. re-rigged by | HT.S | Gredwitch
 https://steamcommunity.com/sharedfiles/filedetails/?id=1353795138
 
 ARC-170 Fighter - Battlefront 2 EA - converted by Salza - rigged by me

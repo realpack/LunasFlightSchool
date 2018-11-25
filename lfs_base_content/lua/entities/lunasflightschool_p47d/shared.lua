@@ -11,7 +11,7 @@ ENT.Category = "[LFS]"
 ENT.Spawnable		= true
 ENT.AdminSpawnable		= false
 
-ENT.MDL = "models/damik/p-47d thunderbolt/p-47 (fly).mdl"
+ENT.MDL = "models/p-47 (fly).mdl"
 
 ENT.AITEAM = 2
 
@@ -62,43 +62,3 @@ ENT.MISSILES = {
 	[4] = { Vector(93.96,-132.84,55.58), Vector(93.96,132.84,55.58) },
 	[5] = { Vector(94,-118.52,53.9), Vector(94,118.52,53.9) },
 }
-
-sound.Add( {
-	name = "LFS_CESSNA_RPM1",
-	channel = CHAN_STATIC,
-	volume = 1.0,
-	level = 125,
-	sound = "^lfs/cessna/rpm_1.wav"
-} )
-
-sound.Add( {
-	name = "LFS_CESSNA_RPM2",
-	channel = CHAN_STATIC,
-	volume = 1.0,
-	level = 125,
-	sound = "^lfs/cessna/rpm_2.wav"
-} )
-
-sound.Add( {
-	name = "LFS_CESSNA_RPM3",
-	channel = CHAN_STATIC,
-	volume = 1.0,
-	level = 125,
-	sound = "^lfs/cessna/rpm_3.wav"
-} )
-
-sound.Add( {
-	name = "LFS_CESSNA_RPM4",
-	channel = CHAN_STATIC,
-	volume = 1.0,
-	level = 125,
-	sound = "^lfs/cessna/rpm_4.wav"
-} )
-
-sound.Add( {
-	name = "LFS_CESSNA_DIST",
-	channel = CHAN_STATIC,
-	volume = 1.0,
-	level = 125,
-	sound = "^lfs/cessna/dist.wav"
-} )

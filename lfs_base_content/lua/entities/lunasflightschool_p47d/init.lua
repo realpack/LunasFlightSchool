@@ -190,10 +190,11 @@ end
 
 function ENT:OnLandingGearToggled( bOn )
 	self:EmitSound( "lfs/bf109/gear.wav" )
-
+	--[[
 	if bOn then
 		self:SetBodygroup( 13, 0 )
 	else
 		self:SetBodygroup( 13, 1 ) 
 	end
+	]]
 end

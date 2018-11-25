@@ -131,9 +131,23 @@ function ENT:AnimCabin()
 end
 
 function ENT:AnimLandingGear()
-	self.SMLG = self.SMLG and self.SMLG + (30 *  (1 - self:GetLGear()) - self.SMLG) * FrameTime() * 8 or 0
+	self.SMLG = self.SMLG and self.SMLG + ((1 - self:GetLGear()) - self.SMLG) * FrameTime() * 8 or 0
+	self.SMRG = self.SMRG and self.SMRG + ((1 - self:GetRGear()) - self.SMRG) * FrameTime() * 8 or 0
 	
-	self:ManipulateBoneAngles( 13, Angle( -30 + self.SMLG,0,0) )
-	self:ManipulateBoneAngles( 14, Angle( 30 - self.SMLG,0,0) )
+	local gExp = self.SMRG ^ 15
+	
+	self:ManipulateBoneAngles( 13, Angle( -30 + 30 * self.SMRG,0,0) )
+	self:ManipulateBoneAngles( 14, Angle( 30 - 30 * self.SMRG,0,0) )
+	
+	self:ManipulateBoneAngles( 42, Angle( 3.5,88,24.5) * self.SMRG )
+	self:ManipulateBoneAngles( 45, Angle( 0,-90,2.8) * gExp )
+	
+	self:ManipulateBoneAngles( 43, Angle( -3.5,-88,24.5) * self.SMLG )
+	self:ManipulateBoneAngles( 44, Angle( 0,90,2.8) * (self.SMLG ^ 15) )
+	
+	self:ManipulateBoneAngles( 47, Angle( -5.5,90,-16) * gExp )
+	self:ManipulateBoneAngles( 48, Angle( 5,-90,-16) * gExp )
+	
+	self:ManipulateBoneAngles( 46, Angle( 0,0,160) * self.SMRG )
 end
 
