@@ -116,7 +116,7 @@ function ENT:AltPrimaryAttack( Driver, Pod )
 	bullet.TracerName	= "lfs_laser_green2"
 	bullet.Force	= 100
 	bullet.HullSize 	= 20
-	bullet.Damage	= 250
+	bullet.Damage	= 125
 	bullet.Attacker 	= Driver
 	bullet.AmmoType = "Pistol"
 	bullet.Callback = function(att, tr, dmginfo)

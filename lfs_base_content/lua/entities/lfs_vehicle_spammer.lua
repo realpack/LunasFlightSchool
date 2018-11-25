@@ -14,7 +14,25 @@ ENT.AdminOnly		= true
 ENT.Editable = true
 
 function ENT:SetupDataTables()
-	self:NetworkVar( "Int",0, "Type",	{ KeyName = "Vehicle Type",Edit = { type = "Int",	order = 1,min = 1, max = 8,	category = "Options"} } )
+	local AllSents = scripted_ents.GetList() 
+	local SpawnOptions = {}
+	
+	for _, v in pairs( AllSents ) do
+		if v and istable( v.t ) then
+			if v.t.Spawnable then
+				if v.t.Base and v.t.Base:lower() == "lunasflightschool_basescript" then
+					if v.t.Category and v.t.PrintName then
+						local nicename = v.t.Category.." "..v.t.PrintName
+						if not table.HasValue( SpawnOptions, nicename ) then
+							SpawnOptions[nicename] = v.t.ClassName
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	self:NetworkVar( "String",0, "Type",	{ KeyName = "Vehicle Type",Edit = { type = "Combo",	order = 1,values = SpawnOptions,category = "Options"} } )
 	self:NetworkVar( "Bool",1, "AutoTeam",{ KeyName = "AI Auto Team",Edit = { type = "Boolean",	order = 2,	category = "Options"} } )
 	self:NetworkVar( "Int",2, "TeamOverride", { KeyName = "AI Team", Edit = { type = "Int", order = 3,min = 0, max = 2, category = "Options"} } )
 	self:NetworkVar( "Int",3, "RespawnTime", { KeyName = "spawntime", Edit = { type = "Int", order = 3,min = 1, max = 120, category = "Options"} } )
@@ -24,7 +42,6 @@ function ENT:SetupDataTables()
 		
 		self:SetAutoTeam( true )
 		self:SetRespawnTime( 2 )
-		self:SetType( 3 )
 	end
 end
 
@@ -39,34 +56,6 @@ if SERVER then
 		self:SetCollisionGroup( COLLISION_GROUP_WORLD )
 		
 		self.NextSpawn = 0
-		
-		self.aType = {
-			[1] = "arc170",
-			[2] = "bf109",
-			[3] = "cessna",
-			[4] = "n1starfighter",
-			[5] = "p47d",
-			[6] = "spitfire",
-			[7] = "tridroid",
-			[8] = "vulturedroid",
-		}
-	end
-
-	function ENT:OnTypeChanged( name, old, new)
-		if new == old then return end
-		
-		if self.GetCreator then
-			local Spawner = self:GetCreator()
-			if IsValid( Spawner ) and Spawner:IsPlayer() then
-				if istable( self.aType ) then
-					local Type = self.aType[ new ]
-					
-					if isstring( Type ) then
-						Spawner:PrintMessage( HUD_PRINTTALK, "Next Vehicle: "..self.aType[ new ] )
-					end
-				end
-			end
-		end
 	end
 
 	function ENT:Think()
@@ -77,11 +66,11 @@ if SERVER then
 				
 				local pos = self:LocalToWorld( Vector( 0, 500, 150 ) )
 				local ang = self:LocalToWorldAngles( Angle( 0, -90, 0 ) )
-
-				local Type = self.aType[ self:GetType() ]
 				
-				if not IsValid( self.spawnedvehicle ) and isstring( Type ) then
-					self.spawnedvehicle = ents.Create( "lunasflightschool_"..Type )
+				local Type = self:GetType()
+				
+				if not IsValid( self.spawnedvehicle ) and Type ~= "" then
+					self.spawnedvehicle = ents.Create( Type )
 					
 					if IsValid( self.spawnedvehicle ) then
 						self.spawnedvehicle:SetPos( pos )
@@ -103,7 +92,7 @@ if SERVER then
 				end
 			end
 		else
-			if not self.spawnedvehicle or not IsValid( self.spawnedvehicle ) and istable( self.aType ) then
+			if not self.spawnedvehicle or not IsValid( self.spawnedvehicle ) then
 				self.ShouldSpawn = true
 				self.NextSpawn = CurTime() + self:GetRespawnTime()
 			end
