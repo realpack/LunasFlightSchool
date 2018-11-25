@@ -16,6 +16,9 @@ function ENT:SpawnFunction( ply, tr, ClassName ) -- called by garry
 	return ent
 end
 
+function ENT:OnTick() -- use this instead of "think"
+end
+
 function ENT:RunOnSpawn() -- called when the vehicle is spawned
 end
 

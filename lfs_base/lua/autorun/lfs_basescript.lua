@@ -5,7 +5,7 @@ simfphys.LFS = {} -- lets add another table for this project. We will be storing
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.VERSION = 57 -- note to self:  don't forget to update this
+simfphys.LFS.VERSION = 60 -- note to self: Workshop is in 10-version increments and always ahead. (next workshop update at 70)
 
 local cVar = GetConVar( "ai_ignoreplayers" )
 simfphys.LFS.IgnorePlayers = cVar and cVar:GetBool() or false
@@ -226,7 +226,8 @@ http.Fetch("https://github.com/Blu-x92/LunasFlightSchool", function(contents,siz
 		if CLIENT then 
 			timer.Simple(10, function() 
 				chat.AddText( Color( 255, 0, 0 ), "[LFS] a newer version is available!" )
-				surface.PlaySound( "lfs/notification.ogg" ) 
+				surface.PlaySound( "lfs/notification/ding.ogg" )
+				timer.Simple(0.5, function() surface.PlaySound( "lfs/notification/"..math.random(1,19)..".ogg" ) end )
 			end)
 		end
 	end
@@ -263,11 +264,9 @@ if CLIENT then
 			
 			view.drawviewer = false
 			
-			return view
+			return Parent:LFSCalcViewFirstPerson( view )
 		end
 		
-		--local mn, mx = Parent:GetRenderBounds()
-		--local radius = ( mn - mx ):Length()
 		local radius = 550
 		radius = radius + radius * Pod:GetCameraDistance()
 		
@@ -293,7 +292,7 @@ if CLIENT then
 			view.origin = view.origin + tr.HitNormal * WallOffset
 		end
 
-		return view
+		return Parent:LFSCalcViewThirdPerson( view )
 	end )
 
 	local function DrawCircle( X, Y, radius )

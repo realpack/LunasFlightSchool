@@ -128,6 +128,9 @@ function ENT:HandleWeapons(Fire1, Fire2)
 	end
 end
 
+function ENT:OnTick()
+end
+
 function ENT:Think()
 	
 	self:HandleActive()
@@ -137,6 +140,7 @@ function ENT:Think()
 	self:CalcFlight()
 	self:PrepExplode()
 	self:RechargeShield()
+	self:OnTick()
 	
 	self:NextThink( CurTime() )
 	
@@ -932,9 +936,14 @@ function ENT:Explode()
 	self.ExplodedAlready = true
 	
 	local Driver = self:GetDriver()
+	local Gunner = self:GetGunner()
 	
 	if IsValid( Driver ) then
 		Driver:TakeDamage( 200, self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
+	end
+	
+	if IsValid( Gunner ) then
+		Gunner:TakeDamage( 200, self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
 	end
 	
 	local ent = ents.Create( "lunasflightschool_destruction" )

@@ -3,6 +3,14 @@
 
 include("shared.lua")
 
+function ENT:LFSCalcViewFirstPerson( view ) -- modify first person camera view here
+	return view
+end
+
+function ENT:LFSCalcViewThirdPerson( view ) -- modify third person camera view here
+	return view
+end
+
 function ENT:CalcEngineSound()
 	local RPM = self:GetRPM()
 	local Pitch = (RPM - self.IdleRPM) / (self.LimitRPM - self.IdleRPM)

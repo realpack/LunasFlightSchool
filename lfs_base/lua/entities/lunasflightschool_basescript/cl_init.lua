@@ -12,6 +12,14 @@ end
 function ENT:Initialize()
 end
 
+function ENT:LFSCalcViewFirstPerson( view )
+	return view
+end
+
+function ENT:LFSCalcViewThirdPerson( view )
+	return view
+end
+
 function ENT:Think()
 	self:AnimCabin()
 	self:AnimLandingGear()
