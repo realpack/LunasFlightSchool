@@ -26,15 +26,7 @@ function ENT:ExhaustFX()
 	self.BoostAdd = self.BoostAdd and (self.BoostAdd - self.BoostAdd * FrameTime()) or 0
 end
 
-function ENT:CalcEngineSound()
-	local CurDist = (LocalPlayer():GetViewEntity() :GetPos() - self:GetPos()):Length()
-	self.PitchOffset = self.PitchOffset and self.PitchOffset + (math.Clamp((CurDist - self.OldDist) * FrameTime() * 300,-40,40) - self.PitchOffset) * FrameTime() * 5 or 0
-	local Doppler = -self.PitchOffset
-	self.OldDist = CurDist
-	
-	local RPM = self:GetRPM()
-	local Pitch = (RPM - self.IdleRPM) / (self.LimitRPM - self.IdleRPM)
-	
+function ENT:CalcEngineSound( RPM, Pitch, Doppler )
 	if self.ENG then
 		self.ENG:ChangePitch(  math.Clamp(math.Clamp(  60 + Pitch * 50, 80,255) + Doppler,0,255) )
 		self.ENG:ChangeVolume( math.Clamp( -1 + Pitch * 6, 0.5,1) )

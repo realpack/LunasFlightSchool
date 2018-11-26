@@ -5,7 +5,7 @@ simfphys.LFS = {} -- lets add another table for this project. We will be storing
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.VERSION = 60 -- note to self: Workshop is in 10-version increments and always ahead. (next workshop update at 70)
+simfphys.LFS.VERSION = 61 -- note to self: Workshop is in 10-version increments and always ahead. (next workshop update at 71)
 
 local cVar = GetConVar( "ai_ignoreplayers" )
 simfphys.LFS.IgnorePlayers = cVar and cVar:GetBool() or false

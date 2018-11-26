@@ -4,6 +4,17 @@
 include("shared.lua")
 
 function ENT:LFSCalcViewFirstPerson( view ) -- modify first person camera view here
+	--[[
+	local ply = LocalPlayer()
+	if ply == self:GetDriver() then
+		-- driver view
+	elseif ply == self:GetGunner() then
+		-- gunner view
+	else
+		-- everyone elses view
+	end
+	]]--
+	
 	return view
 end
 
@@ -11,12 +22,9 @@ function ENT:LFSCalcViewThirdPerson( view ) -- modify third person camera view h
 	return view
 end
 
-function ENT:CalcEngineSound()
-	local RPM = self:GetRPM()
-	local Pitch = (RPM - self.IdleRPM) / (self.LimitRPM - self.IdleRPM)
-	
+function ENT:CalcEngineSound( RPM, Pitch, Doppler )
 	if self.ENG then
-		self.ENG:ChangePitch(  math.Clamp( 60 + Pitch * 40,0,255) )
+		self.ENG:ChangePitch(  math.Clamp( 60 + Pitch * 40 + Doppler,0,255) )
 		self.ENG:ChangeVolume( math.Clamp( Pitch, 0.5,1) )
 	end
 end

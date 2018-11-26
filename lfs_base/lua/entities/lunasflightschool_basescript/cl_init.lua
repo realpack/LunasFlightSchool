@@ -50,7 +50,7 @@ end
 function ENT:ExhaustFX()
 end
 
-function ENT:CalcEngineSound()
+function ENT:CalcEngineSound( RPM, Pitch, Doppler )
 end
 
 function ENT:EngineActiveChanged( bActive )
@@ -67,7 +67,13 @@ function ENT:CheckEngineState()
 	local Active = self:GetEngineActive()
 	
 	if Active then
-		self:CalcEngineSound()
+		local CurDist = (LocalPlayer():GetViewEntity():GetPos() - self:GetPos()):Length()
+		self.PitchOffset = self.PitchOffset and self.PitchOffset + (math.Clamp((CurDist - self.OldDist) * FrameTime() * 300,-40,40) - self.PitchOffset) * FrameTime() * 5 or 0
+		self.OldDist = CurDist
+		local RPM = self:GetRPM()
+		local Pitch = (RPM - self:GetIdleRPM()) / (self:GetLimitRPM() - self:GetIdleRPM())
+		
+		self:CalcEngineSound( RPM, Pitch, -self.PitchOffset )
 	end
 	
 	if self.oldEnActive ~= Active then

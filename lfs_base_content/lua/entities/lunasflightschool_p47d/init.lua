@@ -82,12 +82,13 @@ function ENT:RunOnSpawn()
 	if not self:GetAI() then
 		self:SetBodygroup( 15, 1 )
 	end
-	
+	--[[
 	if self.LandingGearUp then
 		self:SetBodygroup( 13, 0 )
 	else
 		self:SetBodygroup( 13, 1 ) 
 	end
+	]]--
 	
 	self:SetBodygroup( 23, 1 )
 	
@@ -105,6 +106,8 @@ function ENT:RunOnSpawn()
 			Missile:SetNotSolid( true )
 			Missile:DrawShadow( false )
 			Missile:SetParent( self )
+			Missile.DoNotDuplicate = true
+			self:dOwner( Missile )
 			
 			table.insert( self.MissileEnts, Missile )
 		end

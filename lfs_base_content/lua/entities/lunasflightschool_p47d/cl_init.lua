@@ -5,15 +5,7 @@ include("shared.lua")
 function ENT:ExhaustFX()
 end
 
-function ENT:CalcEngineSound()
-	local CurDist = (LocalPlayer():GetViewEntity() :GetPos() - self:GetPos()):Length()
-	self.PitchOffset = self.PitchOffset and self.PitchOffset + (math.Clamp((CurDist - self.OldDist) * FrameTime() * 300,-40,40) - self.PitchOffset) * FrameTime() * 5 or 0
-	local Doppler = -self.PitchOffset
-	self.OldDist = CurDist
-	
-	local RPM = self:GetRPM()
-	local Pitch = (RPM - self.IdleRPM) / (self.LimitRPM - self.IdleRPM)
-	
+function ENT:CalcEngineSound( RPM, Pitch, Doppler )
 	local Low = 500
 	local Mid = 700
 	local High = 950
