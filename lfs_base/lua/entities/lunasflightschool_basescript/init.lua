@@ -256,12 +256,16 @@ function ENT:CalcFlight()
 end
 
 function ENT:CalcFlightHeli()
-	if not self:GetEngineActive() then return end
+	if not self:GetEngineActive() then 
+		self:SetRPM( math.max(self:GetRPM() - self:GetRPM() * FrameTime() * 2,0) )
+		return
+	end
 	
-	if self:IsDestroyed() then
+	if self:IsDestroyed() or self:GetHeliRotorDestroyed() then
 		self:StopEngine()
 	end
 	
+	self:CheckRotorClearance()
 	self:InWater()
 	
 	local MaxTurnSpeed = self:GetMaxTurnSpeedHeli()
@@ -279,10 +283,14 @@ function ENT:CalcFlightHeli()
 	
 	local EyeAngles = self:GetAngles()
 
+	local OnGround = self:HitGround()
+	
 	local W = false
 	local A = false
-	local S = false
+	local S = OnGround
 	local D = false
+	
+	local HoverMode  = false
 	
 	if IsValid( Driver ) then
 		EyeAngles = Pod:WorldToLocalAngles( Driver:EyeAngles() )
@@ -297,8 +305,10 @@ function ENT:CalcFlightHeli()
 		
 		W = Driver:KeyDown( IN_FORWARD )
 		A = Driver:KeyDown( IN_MOVELEFT )
-		S = Driver:KeyDown( IN_BACK )
+		S = not W and OnGround or Driver:KeyDown( IN_BACK )
 		D = Driver:KeyDown( IN_MOVERIGHT )
+		
+		HoverMode = Driver:KeyDown( IN_SPEED )
 	end
 	
 	local LocalVel = self:WorldToLocal( self:GetVelocity() + self:GetPos() )
@@ -307,28 +317,48 @@ function ENT:CalcFlightHeli()
 	local Mass = PhysObj:GetMass()
 	
 	local TargetThrust = self:GetMaxThrustHeli() * ((W and 1 or 0)  - (S and 1 or 0))
-	local Rate = FrameTime() * 10
+	local Rate = FrameTime() * 8
 	
 	self.Thrust = self.Thrust and ( self.Thrust + math.Clamp( TargetThrust - self.Thrust,-Rate,Rate ) ) or 0
 	
 	local cForce = self:GetZForce()
-	
-	self:SetRPM( self:GetLimitRPM() * ((self.Thrust + cForce) / (self:GetMaxThrustHeli() + cForce)) )
-	
 	local Force = Vector(0,0,cForce * (1 - self:GetThrustEfficiency())) + self:GetUp() * (cForce * self:GetThrustEfficiency() - LocalVel.z * 0.01 + self.Thrust)
 	
 	self.Roll = self.Roll and self.Roll + ((D and MaxRoll or 0) - (A and MaxRoll or 0)) * FrameTime() or 0
-	
+
 	local RollForce = self.Roll - AngVel.y
 	local AngForce = self:WorldToLocalAngles( Angle(EyeAngles.p,EyeAngles.y,RollForce) )
+	
+	local HasAI = self:GetAI()
+	
+	if HasAI or HoverMode then
+		--local Ang = self:RunAI()
+		local P = math.Clamp(-LocalVel.x * 0.1,-40,40)
+		local Y = self:GetAngles().y
+		local R = math.Clamp(LocalVel.y * 0.1,-40,40)
+		
+		if A or D then
+			R = (D and 60 or 0) - (A and 60 or 0)
+		end
+		
+		AngForce = self:WorldToLocalAngles( Angle(P,HasAI and Y or EyeAngles.y,R) )
+		
+		self.Roll = 0
+		
+		if HasAI then
+			self.Thrust = math.Clamp( -LocalVel.z,0,self:GetMaxThrustHeli())
+		end
+	end
+	
+	self:SetRPM( self:GetLimitRPM() * ((self.Thrust + cForce) / (self:GetMaxThrustHeli() + cForce)) )
+	
 	AngForce.p = math.Clamp(AngForce.p,-MaxPitch,MaxPitch)
 	AngForce.y = math.Clamp(AngForce.y,-MaxYaw,MaxYaw)
-	AngForce.r = math.Clamp(AngForce.r,-MaxRoll,MaxRoll)
+	AngForce.r = math.Clamp(AngForce.r + math.cos(CurTime()) * 2,-MaxRoll,MaxRoll)
 	
-	local OnGround = self:HitGround()
+	PhysObj:ApplyForceCenter( Force * Mass )
 	
-	if (OnGround and (W or A or D)) or not OnGround then
-		PhysObj:ApplyForceCenter( Force * Mass )
+	if (OnGround and (W or A or D or HoverMode)) or not OnGround then
 		self:ApplyAngForce( (AngForce * 2 - AngVel) * FrameTime() * Mass * 500 )
 	else
 		self:ApplyAngForce( -AngVel * Mass * FrameTime() * 500 )
@@ -339,6 +369,80 @@ function ENT:CalcFlightHeli()
 	self:SetRotRoll( AngForce.r / MaxRoll )
 end
 
+function ENT:OnHeliRotorDestroyed()
+	self:EmitSound( "physics/metal/metal_box_break2.wav" )
+	
+	self:SetHP(1)
+	
+	timer.Simple(2, function()
+		if not IsValid( self ) then return end
+		self:Destroy()
+	end)
+end
+
+function ENT:OnHeliRotorCollide( Pos, Dir )
+	local effectdata = EffectData()
+		effectdata:SetOrigin( Pos )
+		effectdata:SetNormal( Dir )
+	util.Effect( "manhacksparks", effectdata, true, true )
+
+	self:EmitSound( "ambient/materials/roust_crash"..math.random(1,2)..".wav" )
+end
+
+function ENT:CheckRotorClearance()
+	if self.BreakRotor then
+		if self.BreakRotor ~= self:GetHeliRotorDestroyed() then
+			self:SetHeliRotorDestroyed( self.BreakRotor )
+			self:OnHeliRotorDestroyed()
+		end
+		
+		return
+	end
+	
+	local angUp = self:GetRotorAngleHeli()
+	local Up = angUp:Up()
+	local Forward = angUp
+	Forward:RotateAroundAxis( Up, -CurTime() * 2000 )
+	Forward = Forward:Forward()
+	
+	local position = self:GetRotorPos()
+
+	local tr = util.TraceLine( {
+		start = position,
+		endpos = (position + Forward * self:GetRotorRadiusHeli()),
+		filter = function( ent ) 
+			if ( ent == self ) then 
+				return false
+			end
+			
+			return true
+		end
+	} )
+	
+	self.RotorHitCount = self.RotorHitCount or 0
+	
+	if tr.Hit then
+		self.RotorHit = true
+		
+		self.RotorHitCount = self.RotorHitCount + 1
+	else 
+		self.RotorHit = false
+		
+		self.RotorHitCount = math.max(self.RotorHitCount - 1 * FrameTime(),0)
+	end
+	
+	if self.RotorHitCount > 20 then
+		self.BreakRotor = true
+	end
+	
+	if self.RotorHit ~= self.oldRotorHit then
+		self.oldRotorHit = self.RotorHit
+		if self.RotorHit then
+			self:OnHeliRotorCollide( tr.HitPos, tr.HitNormal )
+		end
+	end
+end
+
 function ENT:HitGround()
 	if not isvector( self.obbvc ) or not isnumber( self.obbvm ) then
 		self.obbvc = self:OBBCenter() 
@@ -347,7 +451,7 @@ function ENT:HitGround()
 	
 	local tr = util.TraceLine( {
 		start = self:GetPos(),
-		endpos = self:LocalToWorld( self.obbvc + Vector(0,0,self.obbvm - 50) ),
+		endpos = self:LocalToWorld( self.obbvc + Vector(0,0,self.obbvm - 100) ),
 		filter = function( ent ) 
 			if ( ent == self ) then 
 				return false
@@ -519,10 +623,28 @@ function ENT:IsEngineStartAllowed()
 end
 
 function ENT:StartEngine()
-	if self:GetEngineActive() or self:IsDestroyed() or self:InWater() or not self:IsEngineStartAllowed() then return end
+	if self:GetEngineActive() or self:IsDestroyed() or self:InWater() or not self:IsEngineStartAllowed() or self:GetHeliRotorDestroyed() then return end
 	
 	self:SetEngineActive( true )
 	self:OnEngineStarted()
+	
+	if self:GetHeliMode() then
+		local RotorWash = ents.Create( "env_rotorwash_emitter" )
+		
+		if IsValid( RotorWash ) then
+			RotorWash:SetPos( self:GetRotorPos() )
+			RotorWash:SetAngles( Angle(0,0,0) )
+			RotorWash:Spawn()
+			RotorWash:Activate()
+			RotorWash:SetParent( self )
+			
+			RotorWash.DoNotDuplicate = true
+			self:DeleteOnRemove( RotorWash )
+			self:dOwner( RotorWash )
+			
+			self.RotorWashEnt = RotorWash
+		end
+	end
 end
 
 function ENT:StopEngine()
@@ -530,6 +652,10 @@ function ENT:StopEngine()
 	
 	self:SetEngineActive( false )
 	self:OnEngineStopped()
+	
+	if IsValid( self.RotorWashEnt ) then
+		self.RotorWashEnt:Remove()
+	end
 end
 
 function ENT:ToggleLandingGear()

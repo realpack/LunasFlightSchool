@@ -58,6 +58,9 @@ ENT.MaxTurnYawHeli = 60
 ENT.MaxTurnRollHeli = 60
 ENT.ThrustEfficiencyHeli = 0.7
 
+ENT.RotorAngleHeli = Angle(0,0,0)
+ENT.RotorRadiusHeli = 150
+
 ENT.MaxHealth = 1000
 ENT.MaxShield = 0
 
@@ -74,6 +77,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",1, "EngineActive" )
 	self:NetworkVar( "Bool",2, "AI",	{ KeyName = "aicontrolled",	Edit = { type = "Boolean",	order = 1,	category = "AI"} } )
 	self:NetworkVar( "Bool",3, "HeliMode" )
+	self:NetworkVar( "Bool",4, "HeliRotorDestroyed" )
 	
 	self:NetworkVar( "Int",2, "AITEAM", { KeyName = "aiteam", Edit = { type = "Int", order = 2,min = 0, max = 2, category = "AI"} } )
 	
@@ -187,6 +191,14 @@ end
 function ENT:GetThrustEfficiency()
 	self.ThrustEfficiencyHeli = self.ThrustEfficiencyHeli or 0.7
 	return math.Clamp( self.ThrustEfficiencyHeli ,0.1 ,1 )
+end
+
+function ENT:GetRotorAngleHeli()
+	return self:LocalToWorldAngles( self.RotorAngleHeli )
+end
+
+function ENT:GetRotorRadiusHeli()
+	return self.RotorRadiusHeli
 end
 
 sound.Add( {
