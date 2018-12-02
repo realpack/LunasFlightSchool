@@ -20,7 +20,7 @@ function ENT:SetupDataTables()
 	for _, v in pairs( AllSents ) do
 		if v and istable( v.t ) then
 			if v.t.Spawnable then
-				if v.t.Base and v.t.Base:lower() == "lunasflightschool_basescript" then
+				if v.t.Base and string.StartWith( v.t.Base:lower(), "lunasflightschool_basescript" ) then
 					if v.t.Category and v.t.PrintName then
 						local nicename = v.t.Category.." "..v.t.PrintName
 						if not table.HasValue( SpawnOptions, nicename ) then

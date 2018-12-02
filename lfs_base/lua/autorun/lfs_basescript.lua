@@ -237,7 +237,7 @@ if CLIENT then
 	local HintPlayerAboutHisFuckingIncompetence = true
 	local smTran = 0
 
-	 hook.Add( "CalcView", "LFS_calcview", function(ply, pos, angles, fov)
+	hook.Add( "CalcView", "LFS_calcview", function(ply, pos, angles, fov)
 		HintPlayerAboutHisFuckingIncompetence = false
 	 
 		if ply:GetViewEntity() ~= ply then return end
@@ -504,7 +504,19 @@ if CLIENT then
 		surface.DrawLine( HitPlane.x, HitPlane.y - 10, HitPlane.x, HitPlane.y - 20 ) 
 		
 		DrawCircle( HitPilot.x, HitPilot.y, 34 )
-		
-		
 	end )
+	
+	for _, v in pairs( scripted_ents.GetList()  ) do
+		if v and istable( v.t ) then
+			if v.t.Spawnable then
+				if v.t.Base and string.StartWith( v.t.Base:lower(), "lunasflightschool_basescript" ) then
+					if v.t.Category and v.t.PrintName then
+						if istable( killicon ) and isfunction( killicon.Add ) then
+							killicon.Add( v.t.ClassName, "HUD/killicons/lfs_plane", Color( 255, 80, 0, 255 ) )
+						end
+					end
+				end
+			end
+		end
+	end
 end
