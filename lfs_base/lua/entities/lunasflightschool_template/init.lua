@@ -52,13 +52,13 @@ function ENT:PrimaryAttack()
 end
 
 function ENT:SecondaryAttack()
-	if not self:CanPrimaryAttack() then return end
+	if not self:CanSecondaryAttack() then return end
 	
-	self:SetNextPrimary( 0.15 )
+	self:SetNextSecondary( 0.15 )
 
 	--[[ do secondary attack code here ]]--
 	
-	self:TakePrimaryAmmo()
+	self:TakeSecondaryAmmo()
 end
 
 function ENT:CreateAI() -- called when the ai gets enabled
