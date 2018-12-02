@@ -136,8 +136,14 @@ function ENT:Think()
 	self:HandleActive()
 	self:HandleLandingGear()
 	self:HandleWeapons()
-	self:RunEngine()
-	self:CalcFlight()
+	
+	if self:GetHeliMode() then
+		self:CalcFlightHeli()
+	else
+		self:RunEngine()
+		self:CalcFlight()
+	end
+	
 	self:PrepExplode()
 	self:RechargeShield()
 	self:OnTick()
@@ -247,6 +253,116 @@ function ENT:CalcFlight()
 	self:SetRotPitch( (Pitch / MaxPitch) * MaxAngle )
 	self:SetRotYaw( (Yaw / MaxYaw) * MaxAngle )
 	self:SetRotRoll( (Roll / MaxRoll) * MaxAngle )
+end
+
+function ENT:CalcFlightHeli()
+	if not self:GetEngineActive() then return end
+	
+	if self:IsDestroyed() then
+		self:StopEngine()
+	end
+	
+	self:InWater()
+	
+	local MaxTurnSpeed = self:GetMaxTurnSpeedHeli()
+	local MaxPitch = MaxTurnSpeed.p
+	local MaxYaw = MaxTurnSpeed.y
+	local MaxRoll = MaxTurnSpeed.r
+	
+	local PhysObj = self:GetPhysicsObject()
+	if not IsValid( PhysObj ) then return end
+	
+	local Pod = self:GetDriverSeat()
+	if not IsValid( Pod ) then return end
+	
+	local Driver = Pod:GetDriver()
+	
+	local EyeAngles = self:GetAngles()
+
+	local W = false
+	local A = false
+	local S = false
+	local D = false
+	
+	if IsValid( Driver ) then
+		EyeAngles = Pod:WorldToLocalAngles( Driver:EyeAngles() )
+		
+		if Driver:KeyDown( IN_WALK ) then
+			if isangle( self.StoredEyeAngles ) then
+				EyeAngles = self.StoredEyeAngles
+			end
+		else
+			self.StoredEyeAngles = EyeAngles
+		end
+		
+		W = Driver:KeyDown( IN_FORWARD )
+		A = Driver:KeyDown( IN_MOVELEFT )
+		S = Driver:KeyDown( IN_BACK )
+		D = Driver:KeyDown( IN_MOVERIGHT )
+	end
+	
+	local LocalVel = self:WorldToLocal( self:GetVelocity() + self:GetPos() )
+	local AngVel = self:GetAngVel()
+	
+	local Mass = PhysObj:GetMass()
+	
+	local TargetThrust = self:GetMaxThrustHeli() * ((W and 1 or 0)  - (S and 1 or 0))
+	local Rate = FrameTime() * 10
+	
+	self.Thrust = self.Thrust and ( self.Thrust + math.Clamp( TargetThrust - self.Thrust,-Rate,Rate ) ) or 0
+	
+	local cForce = self:GetZForce()
+	
+	self:SetRPM( self:GetLimitRPM() * ((self.Thrust + cForce) / (self:GetMaxThrustHeli() + cForce)) )
+	
+	local Force = Vector(0,0,cForce * (1 - self:GetThrustEfficiency())) + self:GetUp() * (cForce * self:GetThrustEfficiency() - LocalVel.z * 0.01 + self.Thrust)
+	
+	self.Roll = self.Roll and self.Roll + ((D and MaxRoll or 0) - (A and MaxRoll or 0)) * FrameTime() or 0
+	
+	local RollForce = self.Roll - AngVel.y
+	local AngForce = self:WorldToLocalAngles( Angle(EyeAngles.p,EyeAngles.y,RollForce) )
+	AngForce.p = math.Clamp(AngForce.p,-MaxPitch,MaxPitch)
+	AngForce.y = math.Clamp(AngForce.y,-MaxYaw,MaxYaw)
+	AngForce.r = math.Clamp(AngForce.r,-MaxRoll,MaxRoll)
+	
+	local OnGround = self:HitGround()
+	
+	if (OnGround and (W or A or D)) or not OnGround then
+		PhysObj:ApplyForceCenter( Force * Mass )
+		self:ApplyAngForce( (AngForce * 2 - AngVel) * FrameTime() * Mass * 500 )
+	else
+		self:ApplyAngForce( -AngVel * Mass * FrameTime() * 500 )
+	end
+	
+	self:SetRotPitch( AngForce.p / MaxPitch )
+	self:SetRotYaw( AngForce.y / MaxYaw)
+	self:SetRotRoll( AngForce.r / MaxRoll )
+end
+
+function ENT:HitGround()
+	if not isvector( self.obbvc ) or not isnumber( self.obbvm ) then
+		self.obbvc = self:OBBCenter() 
+		self.obbvm = self:OBBMins().z
+	end
+	
+	local tr = util.TraceLine( {
+		start = self:GetPos(),
+		endpos = self:LocalToWorld( self.obbvc + Vector(0,0,self.obbvm - 50) ),
+		filter = function( ent ) 
+			if ( ent == self ) then 
+				return false
+			end
+		end
+	} )
+	
+	return tr.Hit 
+end
+
+function ENT:GetZForce()
+	if not isnumber( self.ZForce ) then
+		self.ZForce = 600 * FrameTime()
+	end
+	return self.ZForce
 end
 
 function ENT:RunEngine()
@@ -863,8 +979,9 @@ function ENT:OnTakeDamage( dmginfo )
 	local Damage = dmginfo:GetDamage()
 	local CurHealth = self:GetHP()
 	local NewHealth = math.Clamp( CurHealth - Damage , 0, self:GetMaxHP()  )
+	local ShieldCanBlock = dmginfo:IsBulletDamage() or dmginfo:IsDamageType( DMG_AIRBOAT )
 	
-	if dmginfo:IsBulletDamage() or dmginfo:IsDamageType( DMG_AIRBOAT )  then
+	if ShieldCanBlock then
 		local dmgNormal = -dmginfo:GetDamageForce():GetNormalized() 
 		
 		self:SetNextShieldRecharge( 3 )
@@ -889,7 +1006,7 @@ function ENT:OnTakeDamage( dmginfo )
 		self:SetHP( NewHealth )
 	end
 	
-	if NewHealth == 0 then
+	if NewHealth == 0 and not (self:GetShield() > Damage and ShieldCanBlock) then
 		if not self:IsDestroyed() then
 			self.FinalAttacker = dmginfo:GetAttacker() 
 			self.FinalInflictor = dmginfo:GetInflictor()
@@ -1229,7 +1346,9 @@ function ENT:RunAI()
 	return TargetAng
 end
 
-function ENT:PlayAnimation( animation )
+function ENT:PlayAnimation( animation, playbackrate )
+	playbackrate = playbackrate or 1
+	
 	local anims = string.Implode( ",", self:GetSequenceList() )
 	
 	if not animation or not string.match( string.lower(anims), string.lower( animation ), 1 ) then return end
@@ -1237,6 +1356,10 @@ function ENT:PlayAnimation( animation )
 	local sequence = self:LookupSequence( animation )
 	
 	self:ResetSequence( sequence )
-	self:SetPlaybackRate( 1 ) 
+	self:SetPlaybackRate( playbackrate )
 	self:SetSequence( sequence )
+end
+
+function ENT:GetMissileOffset()
+	return self:OBBCenter()
 end

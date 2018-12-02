@@ -40,7 +40,17 @@ if SERVER then
 	function ENT:FollowTarget( followent )
 		local speed = (self:GetStartVelocity() + 3000)
 		local turnrate = self:GetCleanMissile() and 55 or 45
-		local pos = followent:LocalToWorld( followent:OBBCenter() )  + followent:GetVelocity() * 0.25
+		
+		local TargetPos = followent:LocalToWorld( followent:OBBCenter() )
+		
+		if isfunction( followent.GetMissileOffset ) then
+			local Value = followent:GetMissileOffset()
+			if isvector( Value ) then
+				TargetPos = followent:LocalToWorld( Value )
+			end
+		end
+		
+		local pos = TargetPos + followent:GetVelocity() * 0.25
 		
 		local pObj = self:GetPhysicsObject()
 		
@@ -82,8 +92,9 @@ if SERVER then
 		local curtime = CurTime()
 		self:NextThink( curtime )
 		
-		if IsValid( self:GetLockOn() ) then
-			self:FollowTarget( self:GetLockOn() )
+		local Target = self:GetLockOn()
+		if IsValid( Target ) then
+			self:FollowTarget( Target )
 		else
 			self:BlindFire()
 		end

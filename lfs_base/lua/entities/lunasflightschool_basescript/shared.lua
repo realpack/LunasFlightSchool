@@ -15,6 +15,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.Editable = true
 
 ENT.LFS = true
+ENT.LFSHELI = false
 
 ENT.MDL = "error.mdl"
 
@@ -51,6 +52,12 @@ ENT.MaxTurnRoll = 300
 
 ENT.MaxPerfVelocity = 2600
 
+ENT.MaxThrustHeli = 10
+ENT.MaxTurnPitchHeli = 60
+ENT.MaxTurnYawHeli = 60
+ENT.MaxTurnRollHeli = 60
+ENT.ThrustEfficiencyHeli = 0.7
+
 ENT.MaxHealth = 1000
 ENT.MaxShield = 0
 
@@ -66,6 +73,8 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",0, "Active" )
 	self:NetworkVar( "Bool",1, "EngineActive" )
 	self:NetworkVar( "Bool",2, "AI",	{ KeyName = "aicontrolled",	Edit = { type = "Boolean",	order = 1,	category = "AI"} } )
+	self:NetworkVar( "Bool",3, "HeliMode" )
+	
 	self:NetworkVar( "Int",2, "AITEAM", { KeyName = "aiteam", Edit = { type = "Int", order = 2,min = 0, max = 2, category = "AI"} } )
 	
 	self:NetworkVar( "Float",0, "LGear" )
@@ -91,6 +100,7 @@ function ENT:SetupDataTables()
 		self:SetShield( self.MaxShield )
 		self:SetAmmoPrimary( self:GetMaxAmmoPrimary() )
 		self:SetAmmoSecondary( self:GetMaxAmmoSecondary() )
+		self:SetHeliMode( self.LFSHELI )
 	end
 end
 
@@ -164,6 +174,19 @@ end
 
 function ENT:GetRudderPos()
 	return self:LocalToWorld( self.RudderPos )
+end
+
+function ENT:GetMaxTurnSpeedHeli()
+	return  {p = self.MaxTurnPitchHeli, y = self.MaxTurnYawHeli, r = self.MaxTurnRollHeli }
+end
+
+function ENT:GetMaxThrustHeli()
+	return self.MaxThrustHeli
+end
+
+function ENT:GetThrustEfficiency()
+	self.ThrustEfficiencyHeli = self.ThrustEfficiencyHeli or 0.7
+	return math.Clamp( self.ThrustEfficiencyHeli ,0.1 ,1 )
 end
 
 sound.Add( {
