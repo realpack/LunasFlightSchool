@@ -5,7 +5,7 @@ simfphys.LFS = {} -- lets add another table for this project. We will be storing
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.VERSION = 67 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 71)
+simfphys.LFS.VERSION = 68 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 71)
 
 local cVar = GetConVar( "ai_ignoreplayers" )
 simfphys.LFS.IgnorePlayers = cVar and cVar:GetBool() or false
@@ -506,17 +506,21 @@ if CLIENT then
 		DrawCircle( HitPilot.x, HitPilot.y, 34 )
 	end )
 	
-	for _, v in pairs( scripted_ents.GetList()  ) do
-		if v and istable( v.t ) then
-			if v.t.Spawnable then
-				if v.t.Base and string.StartWith( v.t.Base:lower(), "lunasflightschool_basescript" ) then
-					if v.t.Category and v.t.PrintName then
-						if istable( killicon ) and isfunction( killicon.Add ) then
-							killicon.Add( v.t.ClassName, "HUD/killicons/lfs_plane", Color( 255, 80, 0, 255 ) )
+	timer.Simple(10, function()
+		if not istable( scripted_ents ) or not isfunction( scripted_ents.GetList ) then return end
+		
+		for _, v in pairs( scripted_ents.GetList()  ) do
+			if v and istable( v.t ) then
+				if v.t.Spawnable then
+					if v.t.Base and string.StartWith( v.t.Base:lower(), "lunasflightschool_basescript" ) then
+						if v.t.Category and v.t.PrintName then
+							if istable( killicon ) and isfunction( killicon.Add ) then
+								killicon.Add( v.t.ClassName, "HUD/killicons/lfs_plane", Color( 255, 80, 0, 255 ) )
+							end
 						end
 					end
 				end
 			end
 		end
-	end
+	end)
 end
