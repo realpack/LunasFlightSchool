@@ -8,7 +8,7 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 	if not tr.Hit then return end
 
 	local ent = ents.Create( ClassName )
-	ent:SetPos( tr.HitPos + tr.HitNormal * 100 )
+	ent:SetPos( tr.HitPos + tr.HitNormal * 120 )
 	ent:Spawn()
 	ent:Activate()
 
@@ -179,25 +179,6 @@ function ENT:PlayAnimation( animation, playbackrate )
 	self:SetSequence( sequence )
 end
 
-function ENT:OnLandingGearToggled( bOn )
-end
-
-function ENT:InitWheels()
-	local PObj = self:GetPhysicsObject()
-	
-	if IsValid( PObj ) then 
-		PObj:EnableMotion( true )
-	end
-	
-	self:PhysWake()
-end
-
-function ENT:ToggleLandingGear()
-end
-
-function ENT:RaiseLandingGear()
-end
-
 function ENT:HandleWeapons(Fire1, Fire2)
 	local Driver = self:GetDriver()
 	
@@ -277,6 +258,28 @@ function ENT:HandleWeapons(Fire1, Fire2)
 		end
 	end
 end
+
+--[[
+function ENT:OnRotorDestroyed()
+	self:EmitSound( "physics/metal/metal_box_break2.wav" )
+	
+	self:SetHP(1)
+	
+	timer.Simple(2, function()
+		if not IsValid( self ) then return end
+		self:Destroy()
+	end)
+end
+
+function ENT:OnRotorCollide( Pos, Dir )
+	local effectdata = EffectData()
+		effectdata:SetOrigin( Pos )
+		effectdata:SetNormal( Dir )
+	util.Effect( "manhacksparks", effectdata, true, true )
+
+	self:EmitSound( "ambient/materials/roust_crash"..math.random(1,2)..".wav" )
+end
+]]
 
 function ENT:GetMissileOffset()
 	return Vector(0,20,0)

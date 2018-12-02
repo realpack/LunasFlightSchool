@@ -1,7 +1,7 @@
 --DO NOT EDIT OR REUPLOAD THIS FILE
 
 ENT.Type            = "anim"
-DEFINE_BASECLASS( "lunasflightschool_basescript" )
+DEFINE_BASECLASS( "lunasflightschool_basescript_heli" )
 
 ENT.PrintName = "Rebel Helicopter"
 ENT.Author = "Blu"
@@ -24,21 +24,16 @@ ENT.Drag = 1
 ENT.SeatPos = Vector(85,-20,-7)
 ENT.SeatAng = Angle(0,-90,10)
 
-ENT.IdleRPM = 400
-ENT.MaxRPM = 3000
-ENT.LimitRPM = 3000
-
-ENT.RotorPos = Vector(0,0,100)
-
 ENT.MaxThrustHeli = 7
 ENT.MaxTurnPitchHeli = 20
-ENT.MaxTurnYawHeli = 20
+ENT.MaxTurnYawHeli = 40
 ENT.MaxTurnRollHeli = 50
 
 ENT.ThrustEfficiencyHeli = 0.9
 
-ENT.RotorAngleHeli = Angle(2,0,0)
-ENT.RotorRadiusHeli = 380
+ENT.RotorPos = Vector(0,0,100)
+ENT.RotorAngle = Angle(2,0,0)
+ENT.RotorRadius = 380
 
 ENT.MaxHealth = 3500
 

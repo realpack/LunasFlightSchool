@@ -39,13 +39,13 @@ function ENT:SoundStop()
 end
 
 function ENT:AnimFins()
-	self.sm_pp_rudder = self.sm_pp_rudder and (self.sm_pp_rudder + (self:GetRotRoll() * 300 - self.sm_pp_rudder) * FrameTime()) or 0
+	self.sm_pp_rudder = self.sm_pp_rudder and (self.sm_pp_rudder + ((self:GetRotRoll() + self:GetRotYaw()) * 100 - self.sm_pp_rudder) * FrameTime() * 10) or 0
 	self:SetPoseParameter("rudder", self.sm_pp_rudder)
 	self:InvalidateBoneCache() 
 end
 
 function ENT:AnimRotor()
-	local RotorBlown = self:GetHeliRotorDestroyed()
+	local RotorBlown = self:GetRotorDestroyed()
 
 	if RotorBlown ~= self.wasRotorBlown then
 		self.wasRotorBlown = RotorBlown

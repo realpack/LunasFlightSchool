@@ -11,9 +11,8 @@ function ENT:LFSCalcViewFirstPerson( view )
 	if not IsValid( Pod ) then return view end
 	
 	local radius = 800
-	radius = radius + radius * Pod:GetCameraDistance()
 	
-	local TargetOrigin = view.origin - view.angles:Forward() * radius  + view.angles:Up() * radius * 0.2
+	local TargetOrigin = self:LocalToWorld( Vector(0,0,50) ) - view.angles:Forward() * radius  + view.angles:Up() * radius * 0.2
 	local WallOffset = 4
 
 	local tr = util.TraceHull( {
@@ -39,7 +38,7 @@ function ENT:LFSCalcViewFirstPerson( view )
 end
 
 function ENT:LFSCalcViewThirdPerson( view )
-	return view
+	return self:LFSCalcViewFirstPerson( view )
 end
 
 function ENT:CalcEngineSound( RPM, Pitch, Doppler )
@@ -74,7 +73,7 @@ function ENT:AnimFins()
 end
 
 function ENT:AnimRotor()
-	local RotorBlown = self:GetHeliRotorDestroyed()
+	local RotorBlown = self:GetRotorDestroyed()
 	
 	if not RotorBlown then
 		local RPM = self:GetRPM()

@@ -25,35 +25,35 @@ function ENT:RunOnSpawn()
 			ang = Angle(0,-90,10)
 		},
 		{
-			pos = Vector(0,0,20),
+			pos = Vector(30,20,0),
 			ang = Angle(0,-90,0)
 		},
 		{
-			pos = Vector(0,0,20),
+			pos = Vector(30,-20,0),
 			ang = Angle(0,-90,0)
 		},
 		{
-			pos = Vector(0,0,20),
+			pos = Vector(-20,-20,0),
 			ang = Angle(0,-90,0)
 		},
 		{
-			pos = Vector(0,0,20),
+			pos = Vector(-20,20,0),
 			ang = Angle(0,-90,0)
 		},
 		{
-			pos = Vector(0,0,20),
+			pos = Vector(-70,-20,0),
 			ang = Angle(0,-90,0)
 		},
 		{
-			pos = Vector(0,0,20),
+			pos = Vector(-70,20,0),
 			ang = Angle(0,-90,0)
 		},
 		{
-			pos = Vector(0,0,20),
+			pos = Vector(-120,-20,0),
 			ang = Angle(0,-90,0)
 		},
 		{
-			pos = Vector(0,0,20),
+			pos = Vector(-120,20,0),
 			ang = Angle(0,-90,0)
 		},
 	}
@@ -113,10 +113,18 @@ end
 function ENT:OnEngineStopped()
 end
 
-function ENT:OnLandingGearToggled( bOn )
-end
+--[[
+function ENT:OnRotorCollide( Pos, Dir )
+	local effectdata = EffectData()
+		effectdata:SetOrigin( Pos )
+		effectdata:SetNormal( Dir )
+	util.Effect( "manhacksparks", effectdata, true, true )
 
-function ENT:OnHeliRotorDestroyed()
+	self:EmitSound( "ambient/materials/roust_crash"..math.random(1,2)..".wav" )
+end
+]]
+
+function ENT:OnRotorDestroyed()
 	self:EmitSound( "physics/metal/metal_box_break2.wav" )
 	
 	self:SetBodygroup( 1, 2 )
@@ -128,20 +136,4 @@ function ENT:OnHeliRotorDestroyed()
 		if not IsValid( self ) then return end
 		self:Destroy()
 	end)
-end
-
-function ENT:InitWheels()
-	local PObj = self:GetPhysicsObject()
-	
-	if IsValid( PObj ) then 
-		PObj:EnableMotion( true )
-	end
-	
-	self:PhysWake()
-end
-
-function ENT:ToggleLandingGear()
-end
-
-function ENT:RaiseLandingGear()
 end
