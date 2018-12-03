@@ -220,8 +220,15 @@ function ENT:CalcFlight()
 	end
 
 	local Stability = self:GetStability()
-
+	local TaxiMode = self:HitGround() and Stability <= 0.4
+	
+	if TaxiMode then 
+		RudderFadeOut = 1
+		WingFinFadeOut = 0
+	end
+	
 	local ManualRoll = (D and MaxRoll or 0) - (A and MaxRoll or 0)
+	
 	local AutoRoll = (-LocalAngYaw * 22 + LocalAngRoll * 3.5 * RudderFadeOut) * WingFinFadeOut
 	
 	local Roll = math.Clamp( (not A and not D) and AutoRoll or ManualRoll,-MaxRoll ,MaxRoll )
@@ -247,6 +254,25 @@ function ENT:CalcFlight()
 	self:SetRotPitch( (Pitch / MaxPitch) * MaxAngle )
 	self:SetRotYaw( (Yaw / MaxYaw) * MaxAngle )
 	self:SetRotRoll( (Roll / MaxRoll) * MaxAngle )
+end
+
+function ENT:HitGround()
+	if not isvector( self.obbvc ) or not isnumber( self.obbvm ) then
+		self.obbvc = self:OBBCenter() 
+		self.obbvm = self:OBBMins().z
+	end
+	
+	local tr = util.TraceLine( {
+		start = self:LocalToWorld( self.obbvc ),
+		endpos = self:LocalToWorld( self.obbvc + Vector(0,0,self.obbvm - 100) ),
+		filter = function( ent ) 
+			if ( ent == self ) then 
+				return false
+			end
+		end
+	} )
+	
+	return tr.Hit 
 end
 
 function ENT:RunEngine()

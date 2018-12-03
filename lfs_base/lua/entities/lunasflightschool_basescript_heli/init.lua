@@ -43,6 +43,11 @@ function ENT:CalcFlight()
 	local Pod = self:GetDriverSeat()
 	if not IsValid( Pod ) then return end
 	
+	local LocalVel = self:WorldToLocal( self:GetVelocity() + self:GetPos() )
+	local AngVel = self:GetAngVel()
+	
+	local Mass = PhysObj:GetMass()
+	
 	local Driver = Pod:GetDriver()
 	
 	local EyeAngles = self:GetAngles()
@@ -55,6 +60,8 @@ function ENT:CalcFlight()
 	local D = false
 	
 	local HoverMode  = false
+	
+	local TargetThrust = 0
 	
 	if IsValid( Driver ) then
 		EyeAngles = Pod:WorldToLocalAngles( Driver:EyeAngles() )
@@ -73,16 +80,28 @@ function ENT:CalcFlight()
 		D = Driver:KeyDown( IN_MOVERIGHT )
 		
 		HoverMode = Driver:KeyDown( IN_SPEED )
+		
+		TargetThrust = self:GetMaxThrustHeli() * ((W and 1 or 0)  - (S and 1 or 0))
+	else
+		local HasAI = self:GetAI()
+		if HasAI then
+			local TPos =  self:RunAI()
+			local LPos = self:WorldToLocal( TPos )
+			
+			local Target = self:AIGetTarget()
+			
+			local P = math.Clamp(LPos.x * 0.02 - LocalVel.x * 0.1,-40,40)
+			local Y = ((IsValid( Target ) and Target:GetPos() or TPos) - self:GetPos()):Angle().y
+			local R = math.Clamp(-LPos.y * 0.02 + LocalVel.y * 0.1,-40,40)
+			
+			EyeAngles = Angle(P,Y,R)
+			self.Roll = R
+			
+			TargetThrust = math.Clamp( LPos.z -LocalVel.z,-self:GetMaxThrustHeli(),self:GetMaxThrustHeli())
+		end
 	end
 	
-	local LocalVel = self:WorldToLocal( self:GetVelocity() + self:GetPos() )
-	local AngVel = self:GetAngVel()
-	
-	local Mass = PhysObj:GetMass()
-	
-	local TargetThrust = self:GetMaxThrustHeli() * ((W and 1 or 0)  - (S and 1 or 0))
 	local Rate = FrameTime() * 8
-	
 	self.Thrust = self.Thrust and ( self.Thrust + math.Clamp( TargetThrust - self.Thrust,-Rate,Rate ) ) or 0
 	
 	local cForce = self:GetZForce()
@@ -92,10 +111,7 @@ function ENT:CalcFlight()
 
 	local AngForce = self:WorldToLocalAngles( Angle(EyeAngles.p,EyeAngles.y,self.Roll) )
 	
-	local HasAI = self:GetAI()
-	
-	if HasAI or HoverMode then
-		--local Ang = self:RunAI()
+	if HoverMode then
 		local P = math.Clamp(-LocalVel.x * 0.1,-40,40)
 		local Y = self:GetAngles().y
 		local R = math.Clamp(LocalVel.y * 0.1,-40,40)
@@ -107,10 +123,6 @@ function ENT:CalcFlight()
 		AngForce = self:WorldToLocalAngles( Angle(P,HasAI and Y or EyeAngles.y,R) )
 		
 		self.Roll = 0
-		
-		if HasAI then
-			self.Thrust = math.Clamp( -LocalVel.z,0,self:GetMaxThrustHeli())
-		end
 	end
 	
 	self:SetRPM( self:GetLimitRPM() * ((self.Thrust + cForce) / (self:GetMaxThrustHeli() + cForce)) )
@@ -206,25 +218,6 @@ function ENT:CheckRotorClearance()
 	end
 end
 
-function ENT:HitGround()
-	if not isvector( self.obbvc ) or not isnumber( self.obbvm ) then
-		self.obbvc = self:OBBCenter() 
-		self.obbvm = self:OBBMins().z
-	end
-	
-	local tr = util.TraceLine( {
-		start = self:GetPos(),
-		endpos = self:LocalToWorld( self.obbvc + Vector(0,0,self.obbvm - 100) ),
-		filter = function( ent ) 
-			if ( ent == self ) then 
-				return false
-			end
-		end
-	} )
-	
-	return tr.Hit 
-end
-
 function ENT:GetZForce()
 	if not isnumber( self.ZForce ) then
 		self.ZForce = 600 * FrameTime()
@@ -254,6 +247,100 @@ function ENT:StartEngine()
 		self.RotorWashEnt = RotorWash
 	end
 end
+
+function ENT:RunAI()
+	local RangerLength = 15000
+	
+	local mySpeed = self:GetVelocity():Length()
+	local myPos = self:GetPos()
+	local myRadius = self:BoundingRadius() 
+	local myDir = self:GetForward()
+		
+	local MinDist = 1500 + mySpeed
+	local StartPos = self:GetPos()
+	
+	local FrontLeft = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(0,20,0) ):Forward() * RangerLength } )
+	local FrontRight = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(0,-20,0) ):Forward() * RangerLength } )
+	
+	local FrontLeft2 = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(25,65,0) ):Forward() * RangerLength } )
+	local FrontRight2 = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(25,-65,0) ):Forward() * RangerLength } )
+	
+	local FrontLeft3 = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(-25,65,0) ):Forward() * RangerLength } )
+	local FrontRight3 = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(-25,-65,0) ):Forward() * RangerLength } )
+	
+	local FrontUp = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(-20,0,0) ):Forward() * RangerLength } )
+	local FrontDown = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(20,0,0) ):Forward() * RangerLength } )
+
+	local Up = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:GetUp() * RangerLength } )
+	local Down = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos - self:GetUp() * RangerLength } )
+	
+	local Down2 = util.TraceLine( { start = self:LocalToWorld( Vector(0,0,100) ), filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + Vector(0,0,-RangerLength) } )
+	
+	local cAvoid = Vector(0,0,0)
+	if istable( self.FoundPlanes ) then
+		for _, v in pairs( self.FoundPlanes ) do
+			if IsValid( v ) and v ~= self and v.LFS then
+				local theirRadius = v:BoundingRadius() 
+				local Sub = (myPos - v:GetPos())
+				local Dir = Sub:GetNormalized()
+				local Dist = Sub:Length()
+				
+				if Dist < (theirRadius + myRadius + 200) then
+					if math.deg( math.acos( math.Clamp( myDir:Dot( -Dir ) ,-1,1) ) ) < 90 then
+						cAvoid = cAvoid + Dir * (theirRadius + myRadius + 500)
+					end
+				end
+			end
+		end
+	end
+	
+	local FLp = FrontLeft.HitPos + FrontLeft.HitNormal * MinDist + cAvoid * 8
+	local FRp = FrontRight.HitPos + FrontRight.HitNormal * MinDist + cAvoid * 8
+	
+	local FL2p = FrontLeft2.HitPos + FrontLeft2.HitNormal * MinDist
+	local FR2p = FrontRight2.HitPos + FrontRight2.HitNormal * MinDist
+	
+	local FL3p = FrontLeft3.HitPos + FrontLeft3.HitNormal * MinDist
+	local FR3p = FrontRight3.HitPos + FrontRight3.HitNormal * MinDist
+	
+	local FUp = FrontUp.HitPos + FrontUp.HitNormal * MinDist
+	local FDp = FrontDown.HitPos + FrontDown.HitNormal * MinDist
+	
+	local Up = Up.HitPos + Up.HitNormal * MinDist
+	local Dp = Down.HitPos + Down.HitNormal * MinDist
+	
+	local TargetPos = (FLp+FRp+FL2p+FR2p+FL3p+FR3p+FUp+FDp+Up+Dp) / 10
+	
+	local alt = (myPos - Down2.HitPos):Length()
+	
+	if alt < 600 then 
+		TargetPos.z = myPos.z + 2000
+	else
+		local Target = self:AIGetTarget()
+		
+		if IsValid( Target ) then
+			local HisRadius = Target:BoundingRadius() 
+			local HisPos = Target:GetPos() + Vector(0,0,600)
+			
+			TargetPos = HisPos + (myPos - HisPos):GetNormalized() * (myRadius + HisRadius + 500) + cAvoid * 8
+			
+			local startpos =  self:GetRotorPos()
+			local tr = util.TraceHull( {
+				start = startpos,
+				endpos = (startpos + self:GetForward() * 50000),
+				mins = Vector( -30, -30, -30 ),
+				maxs = Vector( 30, 30, 30 ),
+				filter = function( e )
+					local collide = e ~= self
+					return collide
+				end
+			} )
+		end
+	end
+	
+	return TargetPos
+end
+
 
 function ENT:StopEngine()
 	if not self:GetEngineActive() then return end

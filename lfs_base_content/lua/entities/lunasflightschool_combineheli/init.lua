@@ -16,6 +16,30 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 end
 
 function ENT:OnTick()
+	local ID = self:LookupAttachment( "muzzle" )
+	local Attachment = self:GetAttachment( ID )
+	
+	if not Attachment then return end
+
+	self.StartPos = Attachment.Pos
+	self.AimDir = Attachment.Ang
+	self.MuzzleID = ID
+	
+	if self:GetAI() then
+		local Target = self:AIGetTarget()
+		
+		if IsValid( Target ) then
+			local Aimang = (Target:GetPos() - Attachment.Pos):Angle()
+			local Angles = self:WorldToLocalAngles( Aimang )
+			Angles:Normalize()
+	
+			self:SetPoseParameter("weapon_yaw", Angles.y )
+			self:SetPoseParameter("weapon_pitch", -Angles.p )
+		end
+		
+		return
+	end
+	
 	local Pod = self:GetDriverSeat()
 	local Driver = self:GetDriver()
 	
@@ -32,12 +56,7 @@ function ENT:OnTick()
 			return collide
 		end
 	} )
-	
-	local ID = self:LookupAttachment( "muzzle" )
-	local Attachment = self:GetAttachment( ID )
-	
-	if not Attachment then return end
-	
+
 	local Aimang = (tr.HitPos - Attachment.Pos):Angle()
 	local Angles = self:WorldToLocalAngles( Aimang )
 	Angles:Normalize()
@@ -48,10 +67,6 @@ function ENT:OnTick()
 	
 	self:SetPoseParameter("weapon_yaw", self.sm_pp_yaw )
 	self:SetPoseParameter("weapon_pitch", -self.sm_pp_pitch )
-	
-	self.StartPos = Attachment.Pos
-	self.AimDir = Attachment.Ang
-	self.MuzzleID = ID
 end
 
 function ENT:RunOnSpawn()
@@ -69,22 +84,14 @@ function ENT:PrimaryAttack()
 	end
 	
 	if not isvector( self.StartPos ) or not isangle( self.AimDir ) or not isnumber( self.MuzzleID ) then return end
-	
-	local effectdata = EffectData()
-		effectdata:SetOrigin( self.StartPos )
-		effectdata:SetAngles( self.AimDir )
-		effectdata:SetEntity( self )
-		effectdata:SetAttachment( self.MuzzleID )
-		effectdata:SetScale( 1 )
-	util.Effect( "AirboatMuzzleFlash", effectdata, true, true )
-	
+
 	local bullet = {}
 		bullet.Num 			= 1
 		bullet.Src 			= self.StartPos
 		bullet.Dir 			= self.AimDir:Forward()
 		bullet.Spread 		= Vector(0.04,0.04,0)
 		bullet.Tracer		= 2
-		bullet.TracerName 	= "AirboatGunHeavyTracer"
+		bullet.TracerName 	= "lfs_combine_tracer"
 		bullet.Force		= 12
 		bullet.Damage		= 25
 		bullet.HullSize		= 30
@@ -92,12 +99,6 @@ function ENT:PrimaryAttack()
 		bullet.DisableOverride = true
 		bullet.Callback = function(att, tr, dmginfo)
 			dmginfo:SetDamageType(DMG_AIRBOAT)
-			
-			local effectdata = EffectData()
-				effectdata:SetOrigin(  tr.HitPos + tr.HitNormal )
-				effectdata:SetNormal( tr.HitNormal )
-				effectdata:SetRadius( 8 )
-			util.Effect( "cball_bounce", effectdata, true, true )
 		end
 		bullet.Attacker 	= self:GetDriver()
 	self:FireBullets( bullet )
@@ -112,15 +113,10 @@ function ENT:SecondaryAttack()
 	
 	self:EmitSound("npc/waste_scanner/grenade_fire.wav")
 	
-	local Pod = self:GetDriverSeat()
-	local Driver = self:GetDriver()
-	
-	if not IsValid( Pod ) or not IsValid( Driver ) then return end
-	
 	local startpos =  self:GetRotorPos()
 	local tr = util.TraceHull( {
 		start = startpos,
-		endpos = (startpos + Pod:WorldToLocalAngles( Driver:EyeAngles() ):Forward() * 50000),
+		endpos = (startpos + self:GetForward() * 50000),
 		mins = Vector( -40, -40, -40 ),
 		maxs = Vector( 40, 40, 40 ),
 		filter = function( e )
@@ -190,6 +186,16 @@ function ENT:HandleWeapons(Fire1, Fire2)
 		
 		if self:GetAmmoSecondary() > 0 then
 			Fire2 = Driver:KeyDown( IN_ATTACK2 )
+		end
+	else
+		if self:GetAI() then
+			local Target = self:AIGetTarget()
+			
+			if IsValid( Target ) then
+				if self:AITargetInfront( Target, 65 ) then
+					Fire1 = math.cos( CurTime() * 0.8 + self:EntIndex() * 1337 ) > -0.5 -- fire in bursts
+				end
+			end
 		end
 	end
 
@@ -282,5 +288,5 @@ end
 ]]
 
 function ENT:GetMissileOffset()
-	return Vector(0,20,0)
+	return Vector(-60,0,0)
 end
