@@ -98,6 +98,8 @@ function ENT:CalcFlight()
 			self.Roll = R
 			
 			TargetThrust = math.Clamp( LPos.z -LocalVel.z,-self:GetMaxThrustHeli(),self:GetMaxThrustHeli())
+		else
+			TargetThrust = self:GetMaxThrustHeli() * ((W and 1 or 0)  - (S and 1 or 0))
 		end
 	end
 	

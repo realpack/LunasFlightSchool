@@ -220,11 +220,12 @@ function ENT:CalcFlight()
 	end
 
 	local Stability = self:GetStability()
-	local TaxiMode = self:HitGround() and Stability <= 0.4
+	local TaxiMode = self:HitGround() and Stability <= 0.3
 	
 	if TaxiMode then 
 		RudderFadeOut = 1
 		WingFinFadeOut = 0
+		MaxYaw = MaxYaw * (1 / 0.3)
 	end
 	
 	local ManualRoll = (D and MaxRoll or 0) - (A and MaxRoll or 0)

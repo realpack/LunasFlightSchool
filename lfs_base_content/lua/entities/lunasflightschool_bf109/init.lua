@@ -12,7 +12,7 @@ end
 function ENT:PrimaryAttack()
 	if not self:CanPrimaryAttack() then return end
 
-	self:SetNextPrimary( 0.0075 )
+	self:SetNextPrimary( 0.03 )
 	
 	self.MirrorPrimary = not self.MirrorPrimary
 	
@@ -23,11 +23,11 @@ function ENT:PrimaryAttack()
 	bullet.Src 	= self:LocalToWorld( Vector(109.29,7.13 * Mirror,92.85) )
 	bullet.Dir 	= self:GetForward()
 	bullet.Spread 	= Vector( 0.015,  0.015, 0 )
-	bullet.Tracer	= 3
+	bullet.Tracer	= 1
 	bullet.TracerName	= "lfs_tracer_green"
 	bullet.Force	= 10
 	bullet.HullSize 	= 5
-	bullet.Damage	= 5
+	bullet.Damage	= 10
 	bullet.Attacker 	= self:GetDriver()
 	bullet.AmmoType = "Pistol"
 	bullet.Callback = function(att, tr, dmginfo)
@@ -36,7 +36,7 @@ function ENT:PrimaryAttack()
 	
 	self:FireBullets( bullet )
 	
-	self:TakePrimaryAmmo()
+	self:TakePrimaryAmmo( 2 )
 end
 
 function ENT:SecondaryAttack()

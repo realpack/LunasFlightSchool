@@ -7,7 +7,7 @@ include("shared.lua")
 function ENT:PrimaryAttack()
 	if not self:CanPrimaryAttack() then return end
 
-	self:SetNextPrimary( 0.003 )
+	self:SetNextPrimary( 0.03 )
 	
 	local fP = {
 		Vector(141.83,-121.84,68.4),
@@ -28,11 +28,11 @@ function ENT:PrimaryAttack()
 	bullet.Src 	= self:LocalToWorld( fP[self.NumPrim] )
 	bullet.Dir 	= self:LocalToWorldAngles( Angle(-0.5,(fP[self.NumPrim].y > 0 and -2 or 2),0) ):Forward()
 	bullet.Spread 	= Vector( 0.015,  0.015, 0 )
-	bullet.Tracer	= 3
+	bullet.Tracer	= 1
 	bullet.TracerName	= "lfs_tracer_green"
 	bullet.Force	= 100
 	bullet.HullSize 	= 10
-	bullet.Damage	= 16
+	bullet.Damage	= 32
 	bullet.Attacker 	= self:GetDriver()
 	bullet.AmmoType = "Pistol"
 	bullet.Callback = function(att, tr, dmginfo)
@@ -40,7 +40,7 @@ function ENT:PrimaryAttack()
 	end
 	self:FireBullets( bullet )
 	
-	self:TakePrimaryAmmo()
+	self:TakePrimaryAmmo( 2 )
 end
 
 function ENT:SecondaryAttack()
