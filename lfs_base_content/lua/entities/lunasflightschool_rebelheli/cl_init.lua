@@ -4,7 +4,7 @@ include("shared.lua")
 
 function ENT:LFSCalcViewFirstPerson( view )
 	local ply = LocalPlayer()
-	if ply == self:GetDriver() or ply == self:GetGunner() then return view end
+	if ply == self:GetDriver() or ply == self:GetGunner() then return view end -- dont change view if the player is pilot or copilot
 	
 	local Pod = ply:GetVehicle()
 	
@@ -38,7 +38,7 @@ function ENT:LFSCalcViewFirstPerson( view )
 end
 
 function ENT:LFSCalcViewThirdPerson( view )
-	return self:LFSCalcViewFirstPerson( view )
+	return self:LFSCalcViewFirstPerson( view ) -- lets call the first person camera function so we dont have to do the same code twice. This will force the same view for both first and thirdperson
 end
 
 function ENT:CalcEngineSound( RPM, Pitch, Doppler )
