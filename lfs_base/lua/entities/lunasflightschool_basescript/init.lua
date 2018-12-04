@@ -220,7 +220,7 @@ function ENT:CalcFlight()
 	end
 
 	local Stability = self:GetStability()
-	local TaxiMode = self:HitGround() and Stability <= 0.3
+	local TaxiMode = self:HitGround() and Stability <= 0.3 and not self.LandingGearUp
 	
 	if TaxiMode then 
 		RudderFadeOut = 1
