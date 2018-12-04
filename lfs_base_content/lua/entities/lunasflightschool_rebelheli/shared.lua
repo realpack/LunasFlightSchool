@@ -11,8 +11,6 @@ ENT.Category = "[LFS]"
 ENT.Spawnable		= true
 ENT.AdminSpawnable	= false
 
-ENT.LFSHELI = true
-
 ENT.MDL = "models/blu/helicopter.mdl"
 
 ENT.AITEAM = 2
