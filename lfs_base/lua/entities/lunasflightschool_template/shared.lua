@@ -37,8 +37,9 @@ ENT.Drag = 1 -- drag is a good air brake but it will make diving speed worse
 ENT.SeatPos = Vector(0,5,0)
 ENT.SeatAng = Angle(0,-90,0)
 
- -- these wheels are invisible spherical entities
-ENT.WheelMass = 200 -- wheel mass is 1 when the landing gear is retracted
+-- these wheels are invisible spherical entities. 
+-- If you don't want to use these invisible wheels or if you want to add extra wheels simply overwrite the ENT:InitWheels() function in your init.lua!
+ENT.WheelMass = 200 -- wheel mass is 1 when the landing gear is retracted (Wheel mass is set in ENT:HandleLandingGear() function in your init.lua)
 ENT.WheelRadius = 15
 ENT.WheelPos_L = Vector(50,50,-10)
 ENT.WheelPos_R = Vector(50,-50,-10)

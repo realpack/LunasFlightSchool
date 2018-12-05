@@ -12,6 +12,8 @@ E = Enter Vehicle
 ALT + E = Enter closest passenger seat / gunner seat
 
 (in vehicle)
+
+(plane)
 W = Increase Throttle
 S = Decrease Throttle
 A = Roll Left
@@ -31,6 +33,23 @@ ALT(Hold) + Move Mouse = Free Look
 While in Free Look as Driver in the ARC-170 Fighter you can look behind and press the primary attack button to fire the rear facing cannons.
 
 Normal turning is done with the Mouse. It's mouseaim controls. However while in Free Look you can still use W A S D and Shift to maneuver.
+
+
+(helicopter)
+W = Increase Throttle (Thrust Up)
+S = Decrease Throttle (Thrust Down)
+A = Roll Left
+D = Roll Right
+
+R = Start Engine. Make sure you are aiming forward. There will be a signal-sound and red flashing line if your view isn't centered.
+
+Shift (Hold) = Hovermode
+
+Left Mouse Button = Primary Attack
+Right Mouse Button = Secondary Attack
+
+ALT(Hold) + Move Mouse = Free Look
+
 
 
 # Credits
