@@ -257,26 +257,26 @@ function ENT:RunAI()
 	local myPos = self:GetPos()
 	local myRadius = self:BoundingRadius() 
 	local myDir = self:GetForward()
-		
+	
 	local MinDist = 1500 + mySpeed
 	local StartPos = self:GetPos()
 	
-	local FrontLeft = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(0,20,0) ):Forward() * RangerLength } )
-	local FrontRight = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(0,-20,0) ):Forward() * RangerLength } )
+	local FrontLeft = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:LocalToWorldAngles( Angle(0,20,0) ):Forward() * RangerLength } )
+	local FrontRight = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:LocalToWorldAngles( Angle(0,-20,0) ):Forward() * RangerLength } )
 	
-	local FrontLeft2 = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(25,65,0) ):Forward() * RangerLength } )
-	local FrontRight2 = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(25,-65,0) ):Forward() * RangerLength } )
+	local FrontLeft2 = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:LocalToWorldAngles( Angle(25,65,0) ):Forward() * RangerLength } )
+	local FrontRight2 = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:LocalToWorldAngles( Angle(25,-65,0) ):Forward() * RangerLength } )
 	
-	local FrontLeft3 = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(-25,65,0) ):Forward() * RangerLength } )
-	local FrontRight3 = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(-25,-65,0) ):Forward() * RangerLength } )
+	local FrontLeft3 = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:LocalToWorldAngles( Angle(-25,65,0) ):Forward() * RangerLength } )
+	local FrontRight3 = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:LocalToWorldAngles( Angle(-25,-65,0) ):Forward() * RangerLength } )
 	
-	local FrontUp = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(-20,0,0) ):Forward() * RangerLength } )
-	local FrontDown = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:LocalToWorldAngles( Angle(20,0,0) ):Forward() * RangerLength } )
+	local FrontUp = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:LocalToWorldAngles( Angle(-20,0,0) ):Forward() * RangerLength } )
+	local FrontDown = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:LocalToWorldAngles( Angle(20,0,0) ):Forward() * RangerLength } )
 
-	local Up = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + self:GetUp() * RangerLength } )
-	local Down = util.TraceLine( { start = StartPos, filter = function( e ) local collide = e ~= self return false end, endpos = StartPos - self:GetUp() * RangerLength } )
+	local Up = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos + self:GetUp() * RangerLength } )
+	local Down = util.TraceLine( { start = StartPos, filter = self, endpos = StartPos - self:GetUp() * RangerLength } )
 	
-	local Down2 = util.TraceLine( { start = self:LocalToWorld( Vector(0,0,100) ), filter = function( e ) local collide = e ~= self return false end, endpos = StartPos + Vector(0,0,-RangerLength) } )
+	local Down2 = util.TraceLine( { start = self:LocalToWorld( Vector(0,0,100) ), filter = self, endpos = StartPos + Vector(0,0,-RangerLength) } )
 	
 	local cAvoid = Vector(0,0,0)
 	if istable( self.FoundPlanes ) then
