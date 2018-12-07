@@ -93,7 +93,7 @@ function ENT:PrimaryAttack()
 		bullet.Tracer		= 2
 		bullet.TracerName 	= "lfs_combine_tracer"
 		bullet.Force		= 12
-		bullet.Damage		= 25
+		bullet.Damage		= 12
 		bullet.HullSize		= 30
 		bullet.IgnoreEntity 	= self
 		bullet.DisableOverride = true
@@ -159,20 +159,9 @@ function ENT:RemoveAI()
 end
 
 function ENT:OnEngineStarted()
-	self:PlayAnimation( "idle" )
 end
 
 function ENT:OnEngineStopped()
-	self:PlayAnimation( "idle", 0 )
-end
-
-function ENT:PlayAnimation( animation, playbackrate )
-	playbackrate = playbackrate or 1
-	local sequence = self:LookupSequence( animation )
-	
-	self:ResetSequence( sequence )
-	self:SetPlaybackRate( playbackrate ) 
-	self:SetSequence( sequence )
 end
 
 function ENT:HandleWeapons(Fire1, Fire2)

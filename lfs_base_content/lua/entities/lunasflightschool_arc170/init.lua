@@ -108,31 +108,29 @@ function ENT:PrimaryAttack()
 			return collide
 		end
 	} )
+
+	self.MirrorPrimary = not self.MirrorPrimary
 	
-	for i = 0,1 do
-		self.MirrorPrimary = not self.MirrorPrimary
-		
-		local Mirror = self.MirrorPrimary and -1 or 1
-		
-		local bullet = {}
-		bullet.Num 	= 1
-		bullet.Src 	= self:LocalToWorld( Vector(207.65,303.52 * Mirror,-48.35) )
-		bullet.Dir 	= (TracePlane.HitPos - bullet.Src):GetNormalized()
-		bullet.Spread 	= Vector( 0.01,  0.01, 0 )
-		bullet.Tracer	= 1
-		bullet.TracerName	= "lfs_laser_green"
-		bullet.Force	= 100
-		bullet.HullSize 	= 25
-		bullet.Damage	= 40
-		bullet.Attacker 	= self:GetDriver()
-		bullet.AmmoType = "Pistol"
-		bullet.Callback = function(att, tr, dmginfo)
-			dmginfo:SetDamageType(DMG_AIRBOAT)
-		end
-		self:FireBullets( bullet )
-		
-		self:TakePrimaryAmmo()
+	local Mirror = self.MirrorPrimary and -1 or 1
+	
+	local bullet = {}
+	bullet.Num 	= 1
+	bullet.Src 	= self:LocalToWorld( Vector(207.65,303.52 * Mirror,-48.35) )
+	bullet.Dir 	= (TracePlane.HitPos - bullet.Src):GetNormalized()
+	bullet.Spread 	= Vector( 0.01,  0.01, 0 )
+	bullet.Tracer	= 1
+	bullet.TracerName	= "lfs_laser_green"
+	bullet.Force	= 100
+	bullet.HullSize 	= 25
+	bullet.Damage	= 80
+	bullet.Attacker 	= self:GetDriver()
+	bullet.AmmoType = "Pistol"
+	bullet.Callback = function(att, tr, dmginfo)
+		dmginfo:SetDamageType(DMG_AIRBOAT)
 	end
+	self:FireBullets( bullet )
+	
+	self:TakePrimaryAmmo()
 end
 
 function ENT:SecondaryAttack()
@@ -147,9 +145,9 @@ function ENT:SecondaryAttack()
 
 	self:EmitSound( "N1_FIRE2" )
 	
-	self.MirrorPrimary = not self.MirrorPrimary
+	self.MirrorSecondary = not self.MirrorSecondary
 	
-	local Mirror = self.MirrorPrimary and -1 or 1
+	local Mirror = self.MirrorSecondary and -1 or 1
 	
 	local startpos =  self:GetRotorPos()
 	local tr = util.TraceHull( {

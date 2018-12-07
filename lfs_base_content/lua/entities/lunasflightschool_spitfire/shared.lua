@@ -17,7 +17,7 @@ ENT.AITEAM = 2
 
 ENT.Mass = 2700
 ENT.Inertia = Vector(250000,250000,250000)
-ENT.Drag = 0.2
+ENT.Drag = 0.3
 
 ENT.SeatPos = Vector(29,0,61)
 ENT.SeatAng = Angle(0,-90,12)
@@ -39,13 +39,13 @@ ENT.RudderPos = Vector(-162.48,0,102.96)
 
 ENT.MaxVelocity = 2350
 
-ENT.MaxThrust = 600
+ENT.MaxThrust = 650
 
 ENT.MaxTurnPitch = 300
 ENT.MaxTurnYaw = 450
 ENT.MaxTurnRoll = 200
 
-ENT.MaxPerfVelocity = 2800
+ENT.MaxPerfVelocity = 2750
 
 ENT.MaxHealth = 800
 

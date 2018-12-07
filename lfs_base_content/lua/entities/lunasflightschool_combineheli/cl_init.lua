@@ -61,6 +61,20 @@ function ENT:AnimRotor()
 		self:SetRenderClipPlaneEnabled( true )
 		self:SetRenderClipPlane( normal, position )
 	end
+	
+	local RPM = math.min(self:GetRPM() * 5,self:GetMaxRPM())
+	self.RPM = self.RPM and (self.RPM + RPM * FrameTime() * 0.5) or 0
+	
+	local Rot1 = Angle( -self.RPM,0,0)
+	Rot1:Normalize() 
+	
+	local Rot2 = Angle(0,0,self.RPM)
+	Rot2:Normalize() 
+	
+	self:ManipulateBoneAngles( 2, Rot1 )
+	
+	self:ManipulateBoneAngles( 5, Rot2 )
+	self:ManipulateBoneAngles( 3, Rot2 )
 end
 
 function ENT:AnimCabin()
