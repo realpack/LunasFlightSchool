@@ -333,10 +333,7 @@ function ENT:RunAI()
 				endpos = (startpos + self:GetForward() * 50000),
 				mins = Vector( -30, -30, -30 ),
 				maxs = Vector( 30, 30, 30 ),
-				filter = function( e )
-					local collide = e ~= self
-					return collide
-				end
+				filter = self
 			} )
 		end
 	end

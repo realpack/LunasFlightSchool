@@ -39,11 +39,8 @@ function ENT:Initialize()
 	PObj:EnableMotion( false )
 	PObj:SetMass( self.Mass ) 
 	PObj:SetDragCoefficient( self.Drag ) 
-	
 	self.LFSInertiaDefault = PObj:GetInertia()
-	
 	PObj:SetInertia( self.Inertia ) 
-	self.oldlfsin = true
 	
 	self:InitPod()
 	self:InitWheels()
@@ -384,14 +381,20 @@ function ENT:HandleActive()
 	end
 	
 	local inea = Active or self:GetEngineActive() or (self:GetStability() > 0.1) or not self:HitGround()
-	if inea ~= self.oldlfsin then
-		self.oldlfsin = inea
-		local PObj = self:GetPhysicsObject()
+	local TargetInertia = inea and self.Inertia or self.LFSInertiaDefault
+
+	local Time = CurTime()
+	
+	self.NextSetInertia = self.NextSetInertia or 0
+	
+	if self.NextSetInertia < Time then
+		self.NextSetInertia = Time + 1
 		
-		if inea then
-			PObj:SetInertia( self.Inertia )
-		else
-			PObj:SetInertia( self.LFSInertiaDefault  )
+		local PObj = self:GetPhysicsObject()
+		if IsValid( PObj ) then
+			if PObj:GetInertia() ~= TargetInertia then
+				PObj:SetInertia( TargetInertia )
+			end
 		end
 	end
 end
@@ -969,6 +972,10 @@ function ENT:AddPassengerSeat( Pos, Ang )
 		DSPhys:SetMass( 1 )
 	end
 	
+	if not istable( self.pSeats ) then self.pSeats = {} end
+	
+	table.insert( self.pSeats, Pod )
+	
 	return Pod
 end
 
@@ -1142,6 +1149,17 @@ function ENT:Explode()
 		Gunner:TakeDamage( 200, self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
 	end
 	
+	if istable( self.pSeats ) then
+		for _, pSeat in pairs( self.pSeats ) do
+			if IsValid( pSeat ) then
+				local psgr = pSeat:GetDriver()
+				if IsValid( psgr ) then
+					psgr:TakeDamage( 200, self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
+				end
+			end
+		end
+	end
+	
 	local ent = ents.Create( "lunasflightschool_destruction" )
 	if IsValid( ent ) then
 		ent:SetPos( self:GetPos() + Vector(0,0,100) )
@@ -1219,6 +1237,12 @@ function ENT:AITargetInfront( ent, range )
 	return InFront
 end
 
+function ENT:CanSee( otherEnt )
+	if not IsValid( otherEnt ) then return false end
+	
+	return util.TraceLine( { start = self:GetRotorPos(), filter = {self,self.wheel_L,self.wheel_R,self.wheel_C}, endpos = otherEnt:GetPos() } ).HitWorld
+end
+
 function ENT:AIGetTarget()
 	self.NextAICheck = self.NextAICheck or 0
 	
@@ -1243,7 +1267,7 @@ function ENT:AIGetTarget()
 						local Plane = v:lfsGetPlane()
 						
 						if IsValid( Plane ) then
-							if Plane:IsLineOfSightClear( self ) and not Plane:IsDestroyed() and Plane ~= self then
+							if self:CanSee( Plane ) and not Plane:IsDestroyed() and Plane ~= self then
 								local HisTeam = Plane:GetAITEAM()
 								if HisTeam ~= MyTeam or HisTeam == 0 then
 									ClosestTarget = v
@@ -1292,7 +1316,7 @@ end
 function ENT:RunAI()
 	local RangerLength = 15000
 	local mySpeed = self:GetVelocity():Length()
-	local MinDist = 1500 + mySpeed
+	local MinDist = 600 + mySpeed * 2
 	local StartPos = self:GetPos()
 	
 	local TraceFilter = {self,self.wheel_L,self.wheel_R,self.wheel_C}
@@ -1354,7 +1378,7 @@ function ENT:RunAI()
 	
 	local alt = (self:GetPos() - Down2.HitPos):Length()
 	
-	if alt < 600 then 
+	if alt < MinDist then 
 		self.TargetRPM = self:GetMaxRPM()
 		
 		if self:GetStability() < 0.4 then
@@ -1362,7 +1386,7 @@ function ENT:RunAI()
 			TargetPos.z = self:GetPos().z + 2000
 		end
 	else
-		if self:GetStability() < 0.4 then
+		if self:GetStability() < 0.3 then
 			self.TargetRPM = self:GetMaxRPM()
 			
 			self.TargetRPM = self:GetLimitRPM()
@@ -1383,10 +1407,7 @@ function ENT:RunAI()
 							endpos = (startpos + self:GetForward() * 50000),
 							mins = Vector( -30, -30, -30 ),
 							maxs = Vector( 30, 30, 30 ),
-							filter = function( e )
-								local collide = e ~= self
-								return collide
-							end
+							filter = TraceFilter
 						} )
 					
 						local CanShoot = (IsValid( tr.Entity ) and tr.Entity.LFS and tr.Entity.GetAITEAM) and (tr.Entity:GetAITEAM() ~= self:GetAITEAM() or tr.Entity:GetAITEAM() == 0) or true
@@ -1401,7 +1422,7 @@ function ENT:RunAI()
 							end
 						end
 					else
-						TargetPos = TargetPos + Target:GetPos() * 0.1
+						TargetPos = Target:GetPos()
 						
 						self.TargetRPM = self:GetMaxRPM()
 					end
