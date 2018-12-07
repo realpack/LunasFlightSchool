@@ -19,44 +19,8 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 end
 
 function ENT:RunOnSpawn()
-	for num, Pos in pairs( { Vector(-30,0,18), Vector(-107,0,18) } ) do
-		local Pod = ents.Create( "prop_vehicle_prisoner_pod" )
-		
-		if IsValid( Pod ) then
-			Pod:SetMoveType( MOVETYPE_NONE )
-			Pod:SetModel( "models/nova/airboat_seat.mdl" )
-			Pod:SetKeyValue( "vehiclescript","scripts/vehicles/prisoner_pod.txt" )
-			Pod:SetKeyValue( "limitview", 0 )
-			Pod:SetPos( self:LocalToWorld( Pos ) )
-			
-			if num == 2 then
-				Pod:SetAngles( self:LocalToWorldAngles( Angle(0,90,0) ) )
-				self:SetGunnerSeat( Pod )
-			else
-				Pod:SetAngles( self:LocalToWorldAngles( Angle(0,-90,0) ) )
-			end
-			
-			Pod:SetOwner( self )
-			Pod:Spawn()
-			Pod:Activate()
-			Pod:SetParent( self )
-			Pod:SetNotSolid( true )
-			Pod:SetNoDraw( true )
-			Pod:DrawShadow( false )
-			Pod.DoNotDuplicate = true
-			
-			
-			self:DeleteOnRemove( Pod )
-			self:dOwner( Pod )
-			
-			local DSPhys = Pod:GetPhysicsObject()
-			if IsValid( DSPhys ) then
-				DSPhys:EnableDrag( false ) 
-				DSPhys:EnableMotion( false )
-				DSPhys:SetMass( 1 )
-			end
-		end
-	end
+	self:SetGunnerSeat( self:AddPassengerSeat( Vector(-107,0,18), Angle(0,90,0) ) )
+	self:AddPassengerSeat( Vector(-30,0,18), Angle(0,-90,0) )
 end
 
 function ENT:SetNextAltPrimary( delay )

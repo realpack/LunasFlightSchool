@@ -938,6 +938,41 @@ function ENT:InitPod()
 	end
 end
 
+function ENT:AddPassengerSeat( Pos, Ang )
+	if not isvector( Pos ) or not isangle( Ang ) then return NULL end
+	
+	local Pod = ents.Create( "prop_vehicle_prisoner_pod" )
+	
+	if not IsValid( Pod ) then return NULL end
+
+	Pod:SetMoveType( MOVETYPE_NONE )
+	Pod:SetModel( "models/nova/airboat_seat.mdl" )
+	Pod:SetKeyValue( "vehiclescript","scripts/vehicles/prisoner_pod.txt" )
+	Pod:SetKeyValue( "limitview", 0 )
+	Pod:SetPos( self:LocalToWorld( Pos ) )
+	Pod:SetAngles( self:LocalToWorldAngles( Ang ) )
+	Pod:SetOwner( self )
+	Pod:Spawn()
+	Pod:Activate()
+	Pod:SetParent( self )
+	Pod:SetNotSolid( true )
+	Pod:SetNoDraw( true )
+	Pod:DrawShadow( false )
+	Pod.DoNotDuplicate = true
+	
+	self:DeleteOnRemove( Pod )
+	self:dOwner( Pod )
+	
+	local DSPhys = Pod:GetPhysicsObject()
+	if IsValid( DSPhys ) then
+		DSPhys:EnableDrag( false ) 
+		DSPhys:EnableMotion( false )
+		DSPhys:SetMass( 1 )
+	end
+	
+	return Pod
+end
+
 function ENT:ApplyAngForce( angForce )
 	if self:IsDestroyed() then return end
 
