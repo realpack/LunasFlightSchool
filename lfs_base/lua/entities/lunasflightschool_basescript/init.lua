@@ -893,6 +893,8 @@ function ENT:InitWheels()
 	if IsValid( PObj ) then 
 		PObj:EnableMotion( true )
 	end
+	
+	self:PhysWake() 
 end
 
 function ENT:InitPod()

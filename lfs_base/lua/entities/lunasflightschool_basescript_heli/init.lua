@@ -7,6 +7,7 @@ include("shared.lua")
 function ENT:Think()
 	
 	self:HandleActive()
+	self:HandleStart()
 	self:HandleLandingGear()
 	self:HandleWeapons()
 	self:CalcFlight()
@@ -353,16 +354,6 @@ function ENT:StopEngine()
 	if IsValid( self.RotorWashEnt ) then
 		self.RotorWashEnt:Remove()
 	end
-end
-
-function ENT:InitWheels()
-	local PObj = self:GetPhysicsObject()
-	
-	if IsValid( PObj ) then 
-		PObj:EnableMotion( true )
-	end
-	
-	self:PhysWake()
 end
 
 function ENT:ToggleLandingGear()
