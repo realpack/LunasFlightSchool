@@ -59,38 +59,10 @@ function ENT:RunOnSpawn()
 	}
 	
 	for num, v in pairs( PassengerSeats ) do
-		local Pod = ents.Create( "prop_vehicle_prisoner_pod" )
-		
-		if IsValid( Pod ) then
-			Pod:SetMoveType( MOVETYPE_NONE )
-			Pod:SetModel( "models/nova/airboat_seat.mdl" )
-			Pod:SetKeyValue( "vehiclescript","scripts/vehicles/prisoner_pod.txt" )
-			Pod:SetKeyValue( "limitview", 0 )
-			Pod:SetPos( self:LocalToWorld( v.pos ) )
-			Pod:SetAngles( self:LocalToWorldAngles( v.ang ) )
-			
-			if num == 1 then
-				self:SetGunnerSeat( Pod )
-			end
-			
-			Pod:SetOwner( self )
-			Pod:Spawn()
-			Pod:Activate()
-			Pod:SetParent( self )
-			Pod:SetNotSolid( true )
-			Pod:SetNoDraw( true )
-			Pod:DrawShadow( false )
-			Pod.DoNotDuplicate = true
-			
-			self:DeleteOnRemove( Pod )
-			self:dOwner( Pod )
-			
-			local DSPhys = Pod:GetPhysicsObject()
-			if IsValid( DSPhys ) then
-				DSPhys:EnableDrag( false ) 
-				DSPhys:EnableMotion( false )
-				DSPhys:SetMass( 1 )
-			end
+		local Pod = self:AddPassengerSeat( v.pos, v.ang )
+
+		if num == 1 then
+			self:SetGunnerSeat( Pod )
 		end
 	end
 end
