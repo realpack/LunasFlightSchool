@@ -33,15 +33,18 @@ function ENT:SetupDataTables()
 	end
 	
 	self:NetworkVar( "String",0, "Type",	{ KeyName = "Vehicle Type",Edit = { type = "Combo",	order = 1,values = SpawnOptions,category = "Options"} } )
-	self:NetworkVar( "Bool",1, "AutoTeam",{ KeyName = "AI Auto Team",Edit = { type = "Boolean",	order = 2,	category = "Options"} } )
-	self:NetworkVar( "Int",2, "TeamOverride", { KeyName = "AI Team", Edit = { type = "Int", order = 3,min = 0, max = 2, category = "Options"} } )
-	self:NetworkVar( "Int",3, "RespawnTime", { KeyName = "spawntime", Edit = { type = "Int", order = 3,min = 1, max = 120, category = "Options"} } )
+	self:NetworkVar( "Bool",2, "AutoTeam",{ KeyName = "AI Auto Team",Edit = { type = "Boolean",	order = 3,	category = "Options"} } )
+	self:NetworkVar( "Int",3, "TeamOverride", { KeyName = "AI Team", Edit = { type = "Int", order = 4,min = 0, max = 2, category = "Options"} } )
+	self:NetworkVar( "Int",4, "RespawnTime", { KeyName = "spawntime", Edit = { type = "Int", order = 5,min = 1, max = 120, category = "Options"} } )
+	self:NetworkVar( "Int",5, "Amount", { KeyName = "amount", Edit = { type = "Int", order = 6,min = 1, max = 10, category = "Options"} } )
+	self:NetworkVar( "Int",6, "SpawnWithSkin", { KeyName = "spawnwithskin", Edit = { type = "Int", order = 7,min = 0, max = 16, category = "Options"} } )
 	
 	if SERVER then
 		self:NetworkVarNotify( "Type", self.OnTypeChanged )
 		
 		self:SetAutoTeam( true )
 		self:SetRespawnTime( 2 )
+		self:SetAmount( 1 )
 	end
 end
 
@@ -59,6 +62,8 @@ if SERVER then
 	end
 
 	function ENT:Think()
+		self.spawnedvehicles = self.spawnedvehicles or {}
+		
 		if self.ShouldSpawn then
 			if self.NextSpawn < CurTime() then
 				
@@ -69,30 +74,42 @@ if SERVER then
 				
 				local Type = self:GetType()
 				
-				if not IsValid( self.spawnedvehicle ) and Type ~= "" then
-					self.spawnedvehicle = ents.Create( Type )
+				if Type ~= "" then
+					local spawnedvehicle = ents.Create( Type )
 					
-					if IsValid( self.spawnedvehicle ) then
-						self.spawnedvehicle:SetPos( pos )
-						self.spawnedvehicle:SetAngles( ang )
-						self.spawnedvehicle:Spawn()
-						self.spawnedvehicle:Activate()
-						self.spawnedvehicle:SetAI( true )
+					if IsValid( spawnedvehicle ) then
+						spawnedvehicle:SetPos( pos )
+						spawnedvehicle:SetAngles( ang )
+						spawnedvehicle:Spawn()
+						spawnedvehicle:Activate()
+						spawnedvehicle:SetAI( true )
+						spawnedvehicle:SetSkin( self:GetSpawnWithSkin() )
 						
 						if not self:GetAutoTeam() then
-							self.spawnedvehicle:SetAITEAM( self:GetTeamOverride() )
+							spawnedvehicle:SetAITEAM( self:GetTeamOverride() )
 						end
 						
-						local PhysObj = self.spawnedvehicle:GetPhysicsObject()
+						local PhysObj = spawnedvehicle:GetPhysicsObject()
 						
 						if IsValid( PhysObj ) then
 							PhysObj:SetVelocityInstantaneous( self:GetRight() * 1000 )
 						end
+						
+						table.insert( self.spawnedvehicles, spawnedvehicle )
 					end
 				end
 			end
 		else
-			if not self.spawnedvehicle or not IsValid( self.spawnedvehicle ) then
+			local AmountSpawned = 0
+			for k,v in pairs( self.spawnedvehicles ) do
+				if IsValid( v ) then
+					AmountSpawned = AmountSpawned + 1
+				else
+					self.spawnedvehicles[k] = nil
+				end
+			end
+			
+			if AmountSpawned < self:GetAmount() then
 				self.ShouldSpawn = true
 				self.NextSpawn = CurTime() + self:GetRespawnTime()
 			end
@@ -101,5 +118,31 @@ if SERVER then
 		self:NextThink( CurTime() )
 		
 		return true
+	end
+end
+
+if CLIENT then
+	local mat = Material( "sprites/light_glow02_add" )
+	
+	function ENT:Draw()
+		self:DrawModel()
+		
+		if self:GetType() ~= "" then return end
+		
+		self.NextStep = self.NextStep or 0
+		
+		if self.NextStep < CurTime() then
+			self.NextStep = CurTime() + 0.15
+			
+			self.PX = self.PX and self.PX + 125 or 0
+			if self.PX > 1000 then self.PX = 0 end
+		end
+		
+		render.SetMaterial( mat )
+		render.DrawSprite( self:LocalToWorld( Vector(125,500 - self.PX,10) ), 32, 32, Color( 255, 255, 255, 255) )
+		render.DrawSprite( self:LocalToWorld( Vector(-125,500 - self.PX,10) ), 32, 32, Color( 255, 255, 255, 255) )
+		
+		render.DrawSprite( self:LocalToWorld( Vector(125,500 - self.PX,10) ), 130, 130, Color( 0, 127, 255, 255) )
+		render.DrawSprite( self:LocalToWorld( Vector(-125,500 - self.PX,10) ), 130, 130, Color( 0, 127, 255, 255) )
 	end
 end

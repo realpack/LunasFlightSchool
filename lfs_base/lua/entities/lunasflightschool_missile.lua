@@ -129,6 +129,8 @@ if SERVER then
 	function ENT:OnTakeDamage( dmginfo )	
 		if dmginfo:GetDamageType() ~= DMG_AIRBOAT then return end
 		
+		if self:GetAttacker() == dmginfo:GetAttacker() then return end
+		
 		if not self:GetDisabled() then
 			self:SetDisabled( true )
 			
