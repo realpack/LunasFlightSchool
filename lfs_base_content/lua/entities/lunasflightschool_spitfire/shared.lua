@@ -26,6 +26,7 @@ ENT.WheelMass = 400
 ENT.WheelRadius = 10
 ENT.WheelPos_L = Vector(80.28,45,11.05)
 ENT.WheelPos_R = Vector(80.28,-45,11.05)
+ENT.WheelPos_C = Vector(-150.29,0,64)
 
 ENT.IdleRPM = 300
 ENT.MaxRPM = 1400

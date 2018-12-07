@@ -86,21 +86,7 @@ function ENT:AnimCabin()
 end
 
 function ENT:AnimLandingGear()
-	if not IsValid( self.TheLandingGear ) then -- spawn landing gear for all clients that dont have one
-		local LandingGear = ents.CreateClientProp()
-		LandingGear:SetPos( self:LocalToWorld( Vector(30,5,-15) ) )
-		LandingGear:SetAngles( self:LocalToWorldAngles( Angle(0,90,0) ) )
-		LandingGear:SetModel( "models/mechanics/solid_steel/type_b_2_2.mdl" )
-		LandingGear:SetParent( self )
-		LandingGear:Spawn()
-		
-		self.TheLandingGear = LandingGear
-	end
-	
-	self.SMLG = self.SMLG and self.SMLG + (1 *  self:GetLGear() - self.SMLG) * FrameTime() or 0 -- Left Wheel
-	--self.SMRG = self.SMRG and self.SMRG + (1 *  self:GetRGear() - self.SMRG) * FrameTime() or 0 -- Right Wheel
-	
-	self.TheLandingGear:SetPos( self:LocalToWorld( Vector(30,5,-self.SMLG * 15) ) )
+	--[[ function gets called each frame by the base script. you can do whatever you want here ]]--
 end
 
 function ENT:ExhaustFX()

@@ -159,14 +159,6 @@ end
 function ENT:RemoveAI()
 end
 
-function ENT:InitWheels()
-	local PObj = self:GetPhysicsObject()
-	
-	if IsValid( PObj ) then 
-		PObj:EnableMotion( true )
-	end
-end
-
 function ENT:ToggleLandingGear()
 end
 

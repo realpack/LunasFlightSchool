@@ -27,11 +27,6 @@ ENT.Drag = 0
 ENT.SeatPos = Vector(32,0,67.5)
 ENT.SeatAng = Angle(0,-90,0)
 
-ENT.WheelMass = 400
-ENT.WheelRadius = 15
-ENT.WheelPos_L = Vector(0,50,0)
-ENT.WheelPos_R = Vector(0,-50,0)
-
 ENT.IdleRPM = 300
 ENT.MaxRPM = 1200
 ENT.LimitRPM = 2000

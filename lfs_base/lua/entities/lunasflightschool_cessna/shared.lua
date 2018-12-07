@@ -31,11 +31,12 @@ ENT.WingPos = Vector(-11.84,0,80.37)
 ENT.ElevatorPos = Vector(-197.93,0,59.39)
 ENT.RudderPos = Vector(-212.54,0,89.75)
 
-ENT.GhostWheels = {
-	Vector(53.3,0,5),
-	Vector(-14.1,50.8,8.7),
-	Vector(-14.1,-50.8,8.7),
-}
+ENT.WheelAutoRetract = true
+ENT.WheelMass = 50
+ENT.WheelRadius = 12
+ENT.WheelPos_C = Vector(53.3,0,5)
+ENT.WheelPos_L = Vector(-14.1,50.8,8.7)
+ENT.WheelPos_R = Vector(-14.1,-50.8,8.7)
 
 ENT.MaxVelocity = 2000
 

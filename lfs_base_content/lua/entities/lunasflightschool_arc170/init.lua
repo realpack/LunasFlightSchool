@@ -296,14 +296,6 @@ end
 function ENT:RemoveAI()
 end
 
-function ENT:InitWheels()
-	local PObj = self:GetPhysicsObject()
-	
-	if IsValid( PObj ) then 
-		PObj:EnableMotion( true )
-	end
-end
-
 function ENT:HandleWeapons(Fire1, Fire2)
 	local Driver = self:GetDriver()
 	local Gunner = self:GetGunner()

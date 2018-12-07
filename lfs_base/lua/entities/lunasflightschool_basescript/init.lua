@@ -39,7 +39,12 @@ function ENT:Initialize()
 	PObj:EnableMotion( false )
 	PObj:SetMass( self.Mass ) 
 	PObj:SetDragCoefficient( self.Drag ) 
-	PObj:SetInertia( self.Inertia ) 
+	
+	self.LFSInertiaDefault = PObj:GetInertia()
+	
+	if not self:HandleActive() then -- add compatibility for old vehicles
+		PObj:SetInertia( self.Inertia ) 
+	end
 	
 	self:InitPod()
 	self:InitWheels()
@@ -134,6 +139,7 @@ end
 function ENT:Think()
 	
 	self:HandleActive()
+	self:HandleStart()
 	self:HandleLandingGear()
 	self:HandleWeapons()
 	self:RunEngine()
@@ -218,19 +224,32 @@ function ENT:CalcFlight()
 			RudderFadeOut = math.max((60 - math.deg( math.acos(   math.Clamp( self:GetForward():Dot(EyeAngForward) ,-1,1) ) ) ) / 60,0)
 		end
 	end
-
-	local Stability = self:GetStability()
-	local TaxiMode = self:HitGround() and Stability <= 0.3 and not self.LandingGearUp
 	
-	if TaxiMode then 
-		RudderFadeOut = 1
-		WingFinFadeOut = 0
-		MaxYaw = MaxYaw * (1 / 0.3)
+	if IsValid( self.wheel_C_master ) then
+		if isvector( self.WheelPos_L ) and isvector( self.WheelPos_R ) and isvector( self.WheelPos_C ) then
+			local SteerMaster = self.wheel_C_master
+			local smPObj = SteerMaster:GetPhysicsObject()
+			
+			if IsValid( smPObj ) then
+				if smPObj:IsMotionEnabled() then
+					smPObj:EnableMotion( false )
+				end
+			end
+			
+			local Mirror = ((self.WheelPos_L.x + self.WheelPos_R.x) * 0.5 > self.WheelPos_C.x) and -1 or 1
+			
+			self.wheel_C_master:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(LocalAngYaw * Mirror,-45,45),0) ) )
+		end
 	end
+
+	local RollRate = math.min(self:GetVelocity():Length() / (self:GetMaxVelocity() * 0.5),1)
+	RudderFadeOut = math.max(RudderFadeOut,1-RollRate)
 	
+	local Stability = self:GetStability()
+
 	local ManualRoll = (D and MaxRoll or 0) - (A and MaxRoll or 0)
 	
-	local AutoRoll = (-LocalAngYaw * 22 + LocalAngRoll * 3.5 * RudderFadeOut) * WingFinFadeOut
+	local AutoRoll = (-LocalAngYaw * 22 * RollRate + LocalAngRoll * 3.5 * RudderFadeOut) * WingFinFadeOut
 	
 	local Roll = math.Clamp( (not A and not D) and AutoRoll or ManualRoll,-MaxRoll ,MaxRoll )
 	local Yaw = math.Clamp(-LocalAngYaw * 80 * RudderFadeOut,-MaxYaw,MaxYaw)
@@ -248,7 +267,7 @@ function ENT:CalcFlight()
 	
 	PhysObj:ApplyForceOffset( -self:GetElevatorUp() * (ElevatorVel + Pitch * Stability) * Mass * Stability, self:GetElevatorPos() )
 	
-	PhysObj:ApplyForceOffset( -self:GetRudderUp() * (RudderVel + Yaw * Stability) *  Mass * Stability, self:GetRudderPos() )
+	PhysObj:ApplyForceOffset( -self:GetRudderUp() * (math.Clamp(RudderVel,-MaxYaw,MaxYaw) + Yaw * Stability) *  Mass * Stability, self:GetRudderPos() )
     
 	local MaxAngle = 30
     
@@ -343,15 +362,54 @@ function ENT:HandleActive()
 	end
 	
 	local Driver = Pod:GetDriver()
+	local Active = self:GetActive()
 	
 	if Driver ~= self:GetDriver() then
+		if self.HideDriver then
+			if IsValid( self:GetDriver() ) then
+				self:GetDriver():SetNoDraw( false )
+			end
+			if IsValid( Driver ) then
+				Driver:SetNoDraw( true )
+			end
+		end
+		
 		self:SetDriver( Driver )
 		self:SetActive( IsValid( Driver ) )
 		
-		if self:GetActive() then
+		if Active then
 			self:EmitSound( "vehicles/atv_ammo_close.wav" )
 		else
 			self:EmitSound( "vehicles/atv_ammo_open.wav" )
+		end
+	end
+	
+	local inea = Active or self:GetEngineActive() or self:GetStability() > 0.1
+	if inea ~= self.oldlfsin then
+		self.oldlfsin = inea
+		local PObj = self:GetPhysicsObject()
+		
+		if inea then
+			PObj:SetInertia( self.Inertia )
+		else
+			PObj:SetInertia( self.LFSInertiaDefault  )
+		end
+	end
+	
+	return true
+end
+
+function ENT:HandleStart()
+	local Driver = self:GetDriver()
+	
+	if IsValid( Driver ) then
+		local KeyReload = Driver:KeyDown( IN_RELOAD )
+		
+		if self.OldKeyReload ~= KeyReload then
+			self.OldKeyReload = KeyReload
+			if KeyReload then
+				self:ToggleEngine()
+			end
 		end
 	end
 end
@@ -369,18 +427,12 @@ function ENT:HandleLandingGear()
 				self:PhysWake()
 			end
 		end
-		
-		local KeyReload = Driver:KeyDown( IN_RELOAD )
-		
-		if self.OldKeyReload ~= KeyReload then
-			self.OldKeyReload = KeyReload
-			if KeyReload then
-				self:ToggleEngine()
-			end
-		end
 	end
 	
-	local TVal = self.LandingGearUp and 0 or 1
+	local TValAuto = (self:GetStability() > 0.3) and 0 or 1
+	local TValManual = self.LandingGearUp and 0 or 1
+	
+	local TVal = self.WheelAutoRetract and TValAuto or TValManual
 	local Speed = FrameTime()
 	local Speed2 = Speed * math.abs( math.cos( math.rad( self:GetLGear() * 180 ) ) )
 	
@@ -398,6 +450,13 @@ function ENT:HandleLandingGear()
 		local LWpObj = self.wheel_L:GetPhysicsObject()
 		if IsValid( LWpObj ) then
 			LWpObj:SetMass( 1 + (self.WheelMass - 1) * self:GetLGear() ^ 5 )
+		end
+	end
+	
+	if IsValid( self.wheel_C ) then
+		local CWpObj = self.wheel_C:GetPhysicsObject()
+		if IsValid( CWpObj ) then
+			CWpObj:SetMass( 1 + (self.WheelMass - 1) * self:GetRGear() )
 		end
 	end
 end
@@ -633,12 +692,16 @@ function ENT:InWater()
 	return InWater
 end
 
+function ENT:IsSpaceShip()
+	return isnumber( self.Stability )
+end
+
 function ENT:GetStability()
 	self.MaxStability = self.MaxStability or 1
 	
 	local Stability = math.abs( math.Clamp( self:GetForwardVelocity() / self:GetMaxPerfVelocity(),-self.MaxStability,self.MaxStability ) )
 	
-	if isnumber( self.Stability ) then
+	if self:IsSpaceShip() then
 		Stability = self:IsDestroyed() and 0.1 or (self:GetEngineActive() and self.Stability or 0)
 	end
 	
@@ -659,98 +722,169 @@ function ENT:GetForwardVelocity()
 end
 
 function ENT:InitWheels()
-	if not IsValid( self.wheel_L ) then
-		local wheel_L = ents.Create( "prop_physics" )
+	if isnumber( self.WheelMass ) and isnumber( self.WheelRadius ) then
+		if isvector( self.WheelPos_L ) then
+			local wheel_L = ents.Create( "prop_physics" )
 		
-		if IsValid( wheel_L ) then
-			wheel_L:SetPos( self:LocalToWorld( self.WheelPos_L ) )
-			wheel_L:SetAngles( self:LocalToWorldAngles( Angle(0,90,0) ) )
-			
-			wheel_L:SetModel( "models/props_vehicles/tire001c_car.mdl" )
-			wheel_L:Spawn()
-			wheel_L:Activate()
-			
-			wheel_L:SetNoDraw( true )
-			wheel_L:DrawShadow( false )
-			wheel_L.DoNotDuplicate = true
-			
-			local radius = self.WheelRadius
-			
-			wheel_L:PhysicsInitSphere( radius, "jeeptire" )
-			wheel_L:SetCollisionBounds( Vector(-radius,-radius,-radius), Vector(radius,radius,radius) )
-			
-			local LWpObj = wheel_L:GetPhysicsObject()
-			if not IsValid( LWpObj ) then
-				self:Remove()
+			if IsValid( wheel_L ) then
+				wheel_L:SetPos( self:LocalToWorld( self.WheelPos_L ) )
+				wheel_L:SetAngles( self:LocalToWorldAngles( Angle(0,90,0) ) )
 				
-				print("LFS: Failed to initialize landing gear phys model. Plane terminated.")
-				return
+				wheel_L:SetModel( "models/props_vehicles/tire001c_car.mdl" )
+				wheel_L:Spawn()
+				wheel_L:Activate()
+				
+				wheel_L:SetNoDraw( true )
+				wheel_L:DrawShadow( false )
+				wheel_L.DoNotDuplicate = true
+				
+				local radius = self.WheelRadius
+				
+				wheel_L:PhysicsInitSphere( radius, "jeeptire" )
+				wheel_L:SetCollisionBounds( Vector(-radius,-radius,-radius), Vector(radius,radius,radius) )
+				
+				local LWpObj = wheel_L:GetPhysicsObject()
+				if not IsValid( LWpObj ) then
+					self:Remove()
+					
+					print("LFS: Failed to initialize landing gear phys model. Plane terminated.")
+					return
+				end
+			
+				LWpObj:EnableMotion(false)
+				LWpObj:SetMass( self.WheelMass )
+				
+				self.wheel_L = wheel_L
+				self:DeleteOnRemove( wheel_L )
+				self:dOwner( wheel_L )
+				
+				constraint.Axis( wheel_L, self, 0, 0, LWpObj:GetMassCenter(), wheel_L:GetPos(), 0, 0, 50, 0, Vector(1,0,0) , false )
+				constraint.NoCollide( wheel_L, self, 0, 0 ) 
+				
+				LWpObj:EnableMotion( true )
+				LWpObj:EnableDrag( false ) 
+				
+			else
+				self:Remove()
+			
+				print("LFS: Failed to initialize landing gear. Plane terminated.")
 			end
-		
-			LWpObj:EnableMotion(false)
-			LWpObj:SetMass( self.WheelMass )
-			
-			self.wheel_L = wheel_L
-			self:DeleteOnRemove( wheel_L )
-			self:dOwner( wheel_L )
-			
-			constraint.Axis( wheel_L, self, 0, 0, LWpObj:GetMassCenter(), wheel_L:GetPos(), 0, 0, 50, 0, Vector(1,0,0) , false )
-			constraint.NoCollide( wheel_L, self, 0, 0 ) 
-			
-			LWpObj:EnableMotion( true )
-			--LWpObj:EnableDrag( false ) 
-			
-		else
-			self:Remove()
-		
-			print("LFS: Failed to initialize landing gear. Plane terminated.")
 		end
-	end
-	
-	if not IsValid( self.wheel_R ) then
-		local wheel_R = ents.Create( "prop_physics" )
 		
-		if IsValid( wheel_R ) then
-			wheel_R:SetPos( self:LocalToWorld(  self.WheelPos_R ) )
-			wheel_R:SetAngles( self:LocalToWorldAngles( Angle(0,90,0) ) )
+		if isvector( self.WheelPos_R ) then
+			local wheel_R = ents.Create( "prop_physics" )
 			
-			wheel_R:SetModel( "models/props_vehicles/tire001c_car.mdl" )
-			wheel_R:Spawn()
-			wheel_R:Activate()
-			
-			wheel_R:SetNoDraw( true )
-			wheel_R:DrawShadow( false )
-			wheel_R.DoNotDuplicate = true
-			
-			local radius = self.WheelRadius
-			
-			wheel_R:PhysicsInitSphere( radius, "jeeptire" )
-			wheel_R:SetCollisionBounds( Vector(-radius,-radius,-radius), Vector(radius,radius,radius) )
-			
-			local RWpObj = wheel_R:GetPhysicsObject()
-			if not IsValid( RWpObj ) then
-				self:Remove()
+			if IsValid( wheel_R ) then
+				wheel_R:SetPos( self:LocalToWorld(  self.WheelPos_R ) )
+				wheel_R:SetAngles( self:LocalToWorldAngles( Angle(0,90,0) ) )
 				
-				print("LFS: Failed to initialize landing gear phys model. Plane terminated.")
-				return
+				wheel_R:SetModel( "models/props_vehicles/tire001c_car.mdl" )
+				wheel_R:Spawn()
+				wheel_R:Activate()
+				
+				wheel_R:SetNoDraw( true )
+				wheel_R:DrawShadow( false )
+				wheel_R.DoNotDuplicate = true
+				
+				local radius = self.WheelRadius
+				
+				wheel_R:PhysicsInitSphere( radius, "jeeptire" )
+				wheel_R:SetCollisionBounds( Vector(-radius,-radius,-radius), Vector(radius,radius,radius) )
+				
+				local RWpObj = wheel_R:GetPhysicsObject()
+				if not IsValid( RWpObj ) then
+					self:Remove()
+					
+					print("LFS: Failed to initialize landing gear phys model. Plane terminated.")
+					return
+				end
+			
+				RWpObj:EnableMotion(false)
+				RWpObj:SetMass( self.WheelMass )
+				
+				self.wheel_R = wheel_R
+				self:DeleteOnRemove( wheel_R )
+				self:dOwner( wheel_R )
+				
+				constraint.Axis( wheel_R, self, 0, 0, RWpObj:GetMassCenter(), wheel_R:GetPos(), 0, 0, 50, 0, Vector(1,0,0) , false )
+				constraint.NoCollide( wheel_R, self, 0, 0 ) 
+				
+				RWpObj:EnableMotion( true )
+				RWpObj:EnableDrag( false ) 
+			else
+				self:Remove()
+			
+				print("LFS: Failed to initialize landing gear. Plane terminated.")
 			end
+		end
 		
-			RWpObj:EnableMotion(false)
-			RWpObj:SetMass( self.WheelMass )
+		if isvector( self.WheelPos_C ) then
+			local SteerMaster = ents.Create( "prop_physics" )
 			
-			self.wheel_R = wheel_R
-			self:DeleteOnRemove( wheel_R )
-			self:dOwner( wheel_R )
-			
-			constraint.Axis( wheel_R, self, 0, 0, RWpObj:GetMassCenter(), wheel_R:GetPos(), 0, 0, 50, 0, Vector(1,0,0) , false )
-			constraint.NoCollide( wheel_R, self, 0, 0 ) 
-			
-			RWpObj:EnableMotion( true )
-			--RWpObj:EnableDrag( false ) 
-		else
-			self:Remove()
-		
-			print("LFS: Failed to initialize landing gear. Plane terminated.")
+			if IsValid( SteerMaster ) then
+				SteerMaster:SetModel( "models/hunter/plates/plate025x025.mdl" )
+				SteerMaster:SetPos( self:GetPos() )
+				SteerMaster:SetAngles( Angle(0,90,0) )
+				SteerMaster:Spawn()
+				SteerMaster:Activate()
+				
+				local smPObj = SteerMaster:GetPhysicsObject()
+				if IsValid( smPObj ) then
+					smPObj:EnableMotion( false )
+				end
+				
+				SteerMaster:SetOwner( self )
+				SteerMaster:DrawShadow( false )
+				SteerMaster:SetNotSolid( true )
+				SteerMaster:SetNoDraw( true )
+				SteerMaster.DoNotDuplicate = true
+				self:DeleteOnRemove( SteerMaster )
+				self:dOwner( SteerMaster )
+				
+				self.wheel_C_master = SteerMaster
+				
+				local wheel_C = ents.Create( "prop_physics" )
+				
+				if IsValid( wheel_C ) then
+					wheel_C:SetPos( self:LocalToWorld( self.WheelPos_C ) )
+					wheel_C:SetAngles( Angle(0,0,0) )
+					
+					wheel_C:SetModel( "models/props_vehicles/tire001c_car.mdl" )
+					wheel_C:Spawn()
+					wheel_C:Activate()
+					
+					wheel_C:SetNoDraw( true )
+					wheel_C:DrawShadow( false )
+					wheel_C.DoNotDuplicate = true
+					
+					local radius = self.WheelRadius
+					
+					wheel_C:PhysicsInitSphere( radius, "jeeptire" )
+					wheel_C:SetCollisionBounds( Vector(-radius,-radius,-radius), Vector(radius,radius,radius) )
+					
+					local CWpObj = wheel_C:GetPhysicsObject()
+					if not IsValid( CWpObj ) then
+						self:Remove()
+						
+						print("LFS: Failed to initialize landing gear phys model. Plane terminated.")
+						return
+					end
+				
+					CWpObj:EnableMotion(false)
+					CWpObj:SetMass( self.WheelMass )
+					
+					self.wheel_C = wheel_C
+					self:DeleteOnRemove( wheel_C )
+					self:dOwner( wheel_C )
+					
+					constraint.AdvBallsocket(wheel_C, SteerMaster,0,0,Vector(0,0,0),Vector(0,0,0),0,0, -180, -0.01, -0.01, 180, 0.01, 0.01, 0, 0, 0, 1, 0)
+					constraint.AdvBallsocket(wheel_C,self,0,0,Vector(0,0,0),Vector(0,0,0),0,0, -180, -180, -180, 180, 180, 180, 0, 0, 0, 0, 0)
+					constraint.NoCollide( wheel_C, self, 0, 0 ) 
+					
+					CWpObj:EnableMotion( true )
+					CWpObj:EnableDrag( false ) 
+				end
+			end
 		end
 	end
 	

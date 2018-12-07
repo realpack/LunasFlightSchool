@@ -36,6 +36,7 @@ ENT.WheelMass = 400
 ENT.WheelRadius = 18
 ENT.WheelPos_L = Vector(115.22,104.53,4.87)
 ENT.WheelPos_R =  Vector(115.22,-104.53,4.87)
+ENT.WheelPos_C = Vector(-161.67,0,63)
  
 ENT.MaxVelocity = 2400
 

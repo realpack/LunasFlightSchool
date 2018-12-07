@@ -34,15 +34,9 @@ ENT.Mass = 800 -- lower this value if you encounter spazz
 ENT.Inertia = Vector(20000,20000,20000) -- you must increase this when you increase mass or it will spazz
 ENT.Drag = 1 -- drag is a good air brake but it will make diving speed worse
 
+--ENT.HideDriver = true -- hide the driver?
 ENT.SeatPos = Vector(0,5,0)
 ENT.SeatAng = Angle(0,-90,0)
-
--- these wheels are invisible spherical entities. 
--- If you don't want to use these invisible wheels or if you want to add extra wheels simply overwrite the ENT:InitWheels() function in your init.lua!
-ENT.WheelMass = 200 -- wheel mass is 1 when the landing gear is retracted (Wheel mass is set in ENT:HandleLandingGear() function in your init.lua)
-ENT.WheelRadius = 15
-ENT.WheelPos_L = Vector(50,50,-10)
-ENT.WheelPos_R = Vector(50,-50,-10)
 
 ENT.IdleRPM = 300 -- idle rpm. this can be used to tweak the minimum flight speed
 ENT.MaxRPM = 2800 -- rpm at 100% throttle

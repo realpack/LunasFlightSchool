@@ -19,6 +19,7 @@ ENT.Mass = 2000
 ENT.Inertia = Vector(150000,150000,150000)
 ENT.Drag = -1
 
+ENT.HideDriver = true
 ENT.SeatPos = Vector(-28,0,10)
 ENT.SeatAng = Angle(0,-90,0)
 

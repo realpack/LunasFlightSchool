@@ -175,47 +175,10 @@ function ENT:RunEngine()
 	
 end
 
-function ENT:HandleActive()
-	local Pod = self:GetDriverSeat()
-	
-	if not IsValid( Pod ) then
-		self:SetActive( false )
-		return
-	end
-	
-	local Driver = Pod:GetDriver()
-	
-	if Driver ~= self:GetDriver() then
-		if IsValid( self:GetDriver() ) then
-			self:GetDriver():SetNoDraw( false )
-		end
-		if IsValid( Driver ) then
-			Driver:SetNoDraw( true )
-		end
-		
-		self:SetDriver( Driver )
-		self:SetActive( IsValid( Driver ) )
-		
-		if self:GetActive() then
-			self:EmitSound( "vehicles/atv_ammo_close.wav" )
-		else
-			self:EmitSound( "vehicles/atv_ammo_open.wav" )
-		end
-	end
-end
-
 function ENT:CreateAI()
 end
 
 function ENT:RemoveAI()
-end
-
-function ENT:InitWheels()
-	local PObj = self:GetPhysicsObject()
-	
-	if IsValid( PObj ) then 
-		PObj:EnableMotion( true )
-	end
 end
 
 function ENT:ToggleLandingGear()
