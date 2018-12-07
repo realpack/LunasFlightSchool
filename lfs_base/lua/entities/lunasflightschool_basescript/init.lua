@@ -42,9 +42,8 @@ function ENT:Initialize()
 	
 	self.LFSInertiaDefault = PObj:GetInertia()
 	
-	if not self:HandleActive() then -- add compatibility for old vehicles
-		PObj:SetInertia( self.Inertia ) 
-	end
+	PObj:SetInertia( self.Inertia ) 
+	self.oldlfsin = true
 	
 	self:InitPod()
 	self:InitWheels()
@@ -384,7 +383,7 @@ function ENT:HandleActive()
 		end
 	end
 	
-	local inea = Active or self:GetEngineActive() or self:GetStability() > 0.1
+	local inea = Active or self:GetEngineActive() or (self:GetStability() > 0.1) or not self:HitGround()
 	if inea ~= self.oldlfsin then
 		self.oldlfsin = inea
 		local PObj = self:GetPhysicsObject()
@@ -395,8 +394,6 @@ function ENT:HandleActive()
 			PObj:SetInertia( self.LFSInertiaDefault  )
 		end
 	end
-	
-	return true
 end
 
 function ENT:HandleStart()
