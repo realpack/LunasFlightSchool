@@ -238,7 +238,7 @@ function ENT:CalcFlight()
 		end
 	end
 
-	local RollRate = math.min(self:GetVelocity():Length() / (self:GetMaxVelocity() * 0.5),1)
+	local RollRate = math.min(self:GetVelocity():Length() / (math.min(self:GetMaxVelocity(),3000) * 0.5),1)
 	RudderFadeOut = math.max(RudderFadeOut,1-RollRate)
 	
 	local Stability = self:GetStability()
@@ -677,7 +677,7 @@ function ENT:InWater()
 			if IsValid( PhysObj ) then
 				PhysObj:ApplyForceCenter( -self:GetVelocity() * PhysObj:GetMass() * 0.1 )
 			end
-			self:ApplyAngForce( -self:GetAngVel() * PhysObj:GetMass() * 100 )
+			self:ApplyAngForce( -self:GetAngVel() * PhysObj:GetMass() * 25 )
 			
 			if self:GetAI() then
 				self:Destroy()
