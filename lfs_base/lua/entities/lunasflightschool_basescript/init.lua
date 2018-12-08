@@ -1422,7 +1422,7 @@ function ENT:RunAI()
 							end
 						end
 					else
-						TargetPos = Target:GetPos()
+						TargetPos = TargetPos + (Target:GetPos() - StartPos) * 0.1
 						
 						self.TargetRPM = self:GetMaxRPM()
 					end
