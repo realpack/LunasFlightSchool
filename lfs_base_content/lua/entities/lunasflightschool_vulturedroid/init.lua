@@ -39,10 +39,7 @@ function ENT:PrimaryAttack()
 		endpos = (startpos + self:GetForward() * 50000),
 		mins = Vector( -10, -10, -10 ),
 		maxs = Vector( 10, 10, 10 ),
-		filter = function( e )
-			local collide = e ~= self
-			return collide
-		end
+		filter = self
 	} )
 	
 	local bullet = {}
@@ -78,10 +75,7 @@ function ENT:SecondaryAttack()
 		endpos = (startpos + self:GetForward() * 50000),
 		mins = Vector( -10, -10, -10 ),
 		maxs = Vector( 10, 10, 10 ),
-		filter = function( e )
-			local collide = e ~= self
-			return collide
-		end
+		filter = self
 	} )
 
 	for i = 1, 2 do

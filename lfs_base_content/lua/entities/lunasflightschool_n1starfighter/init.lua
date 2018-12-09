@@ -58,10 +58,7 @@ function ENT:SecondaryAttack()
 		endpos = (startpos + self:GetForward() * 50000),
 		mins = Vector( -40, -40, -40 ),
 		maxs = Vector( 40, 40, 40 ),
-		filter = function( e )
-			local collide = e ~= self
-			return collide
-		end
+		filter = self
 	} )
 	
 	local ent = ents.Create( "lunasflightschool_missile" )

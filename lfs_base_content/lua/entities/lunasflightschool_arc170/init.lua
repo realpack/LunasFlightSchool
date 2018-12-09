@@ -59,10 +59,7 @@ function ENT:AltPrimaryAttack( Driver, Pod )
 		endpos = (startpos + EyeAngles:Forward() * 50000),
 		mins = Vector( -10, -10, -10 ),
 		maxs = Vector( 10, 10, 10 ),
-		filter = function( e )
-			local collide = e ~= self
-			return collide
-		end
+		filter = self
 	} )
 
 	self.MirrorPrimary = not self.MirrorPrimary
@@ -103,10 +100,7 @@ function ENT:PrimaryAttack()
 		endpos = (startpos + self:GetForward() * 50000),
 		mins = Vector( -10, -10, -10 ),
 		maxs = Vector( 10, 10, 10 ),
-		filter = function( e )
-			local collide = e ~= self
-			return collide
-		end
+		filter = self
 	} )
 
 	self.MirrorPrimary = not self.MirrorPrimary

@@ -380,23 +380,26 @@ function ENT:HandleActive()
 		end
 	end
 	
-	local inea = Active or self:GetEngineActive() or (self:GetStability() > 0.1) or not self:HitGround()
-	local TargetInertia = inea and self.Inertia or self.LFSInertiaDefault
-
 	local Time = CurTime()
 	
 	self.NextSetInertia = self.NextSetInertia or 0
 	
 	if self.NextSetInertia < Time then
-		self.NextSetInertia = Time + 1
+		local inea = Active or self:GetEngineActive() or (self:GetStability() > 0.1) or not self:HitGround()
+		local TargetInertia = inea and self.Inertia or self.LFSInertiaDefault
+		
+		self.NextSetInertia = Time + 1 -- !!!hack!!! reset every second. There are so many factors that could possibly break this like touching the planes with the physgun which sometimes causes ent:GetInertia() to return a wrong value?!?!
 		
 		local PObj = self:GetPhysicsObject()
 		if IsValid( PObj ) then
-			if PObj:GetInertia() ~= TargetInertia then
-				PObj:SetInertia( TargetInertia )
-			end
+			PObj:SetMass( self.Mass ) -- !!!hack!!!
+			PObj:SetInertia( TargetInertia ) -- !!!hack!!!
 		end
 	end
+end
+
+function ENT:InertiaSetNow()
+	self.NextSetInertia = 0
 end
 
 function ENT:HandleStart()
@@ -493,6 +496,8 @@ function ENT:StartEngine()
 	
 	self:SetEngineActive( true )
 	self:OnEngineStarted()
+	
+	self:InertiaSetNow()
 end
 
 function ENT:StopEngine()
@@ -1422,7 +1427,13 @@ function ENT:RunAI()
 							end
 						end
 					else
-						TargetPos = TargetPos + (Target:GetPos() - StartPos) * 0.1
+						if alt > 6000 and self:AITargetInfront( Target, 90 ) then
+							TargetPos = Target:GetPos()
+							--print("follow target")
+						else
+							TargetPos = TargetPos
+							--print("avoid target")
+						end
 						
 						self.TargetRPM = self:GetMaxRPM()
 					end

@@ -51,10 +51,7 @@ function ENT:OnTick()
 		endpos = (startpos + Pod:WorldToLocalAngles( Driver:EyeAngles() ):Forward() * 50000),
 		mins = Vector( -40, -40, -40 ),
 		maxs = Vector( 40, 40, 40 ),
-		filter = function( e )
-			local collide = e ~= self
-			return collide
-		end
+		filter = self
 	} )
 
 	local Aimang = (tr.HitPos - Attachment.Pos):Angle()
@@ -119,10 +116,7 @@ function ENT:SecondaryAttack()
 		endpos = (startpos + self:GetForward() * 50000),
 		mins = Vector( -40, -40, -40 ),
 		maxs = Vector( 40, 40, 40 ),
-		filter = function( e )
-			local collide = e ~= self
-			return collide
-		end
+		filter = self
 	} )
 
 	self.FireLeft = not self.FireLeft
