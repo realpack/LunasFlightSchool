@@ -5,7 +5,7 @@ simfphys.LFS = {} -- lets add another table for this project. We will be storing
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.VERSION = 87 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 95)
+simfphys.LFS.VERSION = 88 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 95)
 
 local cVar = GetConVar( "ai_ignoreplayers" )
 simfphys.LFS.IgnorePlayers = cVar and cVar:GetBool() or false
@@ -344,8 +344,14 @@ if CLIENT then
 		
 		local ZPos = math.Round( ent:GetPos().z,0)
 		if (ZPos + MinZ)< 0 then MinZ = math.abs(ZPos) end
+		
+		local alt = math.Round( (ent:GetPos().z + MinZ) * 0.0254,0)
+		
 		draw.SimpleText( "ALT", "LFS_FONT", 10, 60, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
-		draw.SimpleText( math.Round( (ent:GetPos().z + MinZ) * 0.0254,0).."m" , "LFS_FONT", 120, 60, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+		draw.SimpleText( alt.."m" , "LFS_FONT", 120, 60, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+		
+		local AmmoPrimary = ent:GetAmmoPrimary()
+		local AmmoSecondary = ent:GetAmmoSecondary()
 		
 		if ent:GetMaxAmmoPrimary() > -1 then
 			draw.SimpleText( "PRI", "LFS_FONT", 10, 85, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
@@ -356,6 +362,8 @@ if CLIENT then
 			draw.SimpleText( "SEC", "LFS_FONT", 10, 110, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 			draw.SimpleText( ent:GetAmmoSecondary(), "LFS_FONT", 120, 110, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 		end
+		
+		ent:LFSHudPaint( X, Y, {speed = speed, altitude = alt, PrimaryAmmo = AmmoPrimary, SecondaryAmmo = AmmoSecondary, Throttle = Throttle})
 	end
 
 	local NextFind = 0
@@ -460,21 +468,13 @@ if CLIENT then
 		local TracePlane = util.TraceLine( {
 			start = startpos,
 			endpos = (startpos + Parent:GetForward() * 50000),
-			filter = function( e )
-				local collide = e ~= Parent
-				
-				return collide
-			end
+			filter = Parent
 		} )
 		
 		local TracePilot = util.TraceLine( {
 			start = startpos,
 			endpos = (startpos + ply:EyeAngles():Forward() * 50000),
-			filter = function( e )
-				local collide = e ~= Parent
-				
-				return false
-			end
+			filter = Parent
 		} )
 		
 		local HitPlane = TracePlane.HitPos:ToScreen()

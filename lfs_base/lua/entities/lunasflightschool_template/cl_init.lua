@@ -22,6 +22,9 @@ function ENT:LFSCalcViewThirdPerson( view ) -- modify third person camera view h
 	return view
 end
 
+function ENT:LFSHudPaint( X, Y, data ) -- driver only
+end
+
 function ENT:CalcEngineSound( RPM, Pitch, Doppler )
 	if self.ENG then
 		self.ENG:ChangePitch(  math.Clamp( 60 + Pitch * 40 + Doppler,0,255) )

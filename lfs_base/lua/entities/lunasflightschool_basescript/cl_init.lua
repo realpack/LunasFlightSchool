@@ -20,6 +20,9 @@ function ENT:LFSCalcViewThirdPerson( view )
 	return view
 end
 
+function ENT:LFSHudPaint( X, Y, data )
+end
+
 function ENT:Think()
 	self:AnimCabin()
 	self:AnimLandingGear()
