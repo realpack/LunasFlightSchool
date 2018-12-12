@@ -78,8 +78,6 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Int",0, "AmmoPrimary", { KeyName = "primaryammo", Edit = { type = "Int", order = 3,min = 0, max = self.MaxPrimaryAmmo, category = "Weapons"} } )
 	self:NetworkVar( "Int",1, "AmmoSecondary", { KeyName = "secondaryammo", Edit = { type = "Int", order = 4,min = 0, max = self.MaxSecondaryAmmo, category = "Weapons"} } )
 
-	
-	
 	if SERVER then
 		self:NetworkVarNotify( "AI", self.OnToggleAI )
 		
@@ -89,6 +87,11 @@ function ENT:SetupDataTables()
 		self:SetAmmoPrimary( self:GetMaxAmmoPrimary() )
 		self:SetAmmoSecondary( self:GetMaxAmmoSecondary() )
 	end
+	
+	self:AddDataTables()
+end
+
+function ENT:AddDataTables()
 end
 
 function ENT:GetMaxShield()

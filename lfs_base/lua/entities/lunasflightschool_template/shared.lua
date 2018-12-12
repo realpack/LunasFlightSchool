@@ -64,3 +64,7 @@ ENT.MaxStability = 0.7 -- lower this value if you encounter spazz. You can incre
 
 ENT.MaxPrimaryAmmo = 100   -- set to a positive number if you want to use weapons. set to -1 if you dont
 ENT.MaxSecondaryAmmo = -1 -- set to a positive number if you want to use weapons. set to -1 if you dont
+
+function ENT:AddDataTables() -- use this to add networkvariables instead of ENT:SetupDataTables().
+	--[[DO NOT USE SLOTS SMALLER THAN 10]]--
+end
