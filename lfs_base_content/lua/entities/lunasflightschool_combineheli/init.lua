@@ -248,7 +248,14 @@ function ENT:HandleWeapons(Fire1, Fire2)
 	end
 end
 
+function ENT:OnEngineStartInitialized()
+	self:EmitSound( "lfs/heli_start_generic.ogg")
+end
+
 --[[
+function ENT:OnEngineStopInitialized()
+end
+
 function ENT:OnRotorDestroyed()
 	self:EmitSound( "physics/metal/metal_box_break2.wav" )
 	

@@ -14,6 +14,8 @@ function ENT:Think()
 	self:PrepExplode()
 	self:RechargeShield()
 	self:OnTick()
+	self:CalcEngineStart()
+	self:CalcEngineStop()
 	
 	self:NextThink( CurTime() )
 	
@@ -21,17 +23,17 @@ function ENT:Think()
 end
 
 function ENT:CalcFlight()
-	if not self:GetEngineActive() then 
-		self:SetRPM( math.max(self:GetRPM() - self:GetRPM() * FrameTime() * 2,0) )
-		return
-	end
+	if not self:GetEngineActive() or self:IsStartStopping() then return end
+	
+	self:InWater()
 	
 	if self:IsDestroyed() or self:GetRotorDestroyed() then
 		self:StopEngine()
+		
+		return
 	end
 	
 	self:CheckRotorClearance()
-	self:InWater()
 	
 	local MaxTurnSpeed = self:GetMaxTurnSpeedHeli()
 	local MaxPitch = MaxTurnSpeed.p
@@ -228,29 +230,6 @@ function ENT:GetZForce()
 	return self.ZForce
 end
 
-function ENT:StartEngine()
-	if self:GetEngineActive() or self:IsDestroyed() or self:InWater() or not self:IsEngineStartAllowed() or self:GetRotorDestroyed() then return end
-	
-	self:SetEngineActive( true )
-	self:OnEngineStarted()
-
-	local RotorWash = ents.Create( "env_rotorwash_emitter" )
-	
-	if IsValid( RotorWash ) then
-		RotorWash:SetPos( self:GetRotorPos() )
-		RotorWash:SetAngles( Angle(0,0,0) )
-		RotorWash:Spawn()
-		RotorWash:Activate()
-		RotorWash:SetParent( self )
-		
-		RotorWash.DoNotDuplicate = true
-		self:DeleteOnRemove( RotorWash )
-		self:dOwner( RotorWash )
-		
-		self.RotorWashEnt = RotorWash
-	end
-end
-
 function ENT:RunAI()
 	local RangerLength = 15000
 	
@@ -341,6 +320,119 @@ function ENT:RunAI()
 	return TargetPos
 end
 
+function ENT:IsStartStopping()
+	return self.bDoStopStored or self.bDoStartStored
+end
+
+function ENT:OnToggleAI( name, old, new)
+	if new == old then return end
+	
+	if new == true then
+		local Driver = self:GetDriver()
+		
+		if IsValid( Driver ) then
+			Driver:ExitVehicle()
+		end
+		
+		self:SetActive( true )
+		self:CalcEngineStart( true )
+		self:CreateAI()
+	else
+		self:SetActive( false )
+		self:CalcEngineStop( true )
+		self:RemoveAI()
+	end
+end
+
+function ENT:CalcEngineStart( bDoStart )
+	if bDoStart == true then 
+		if not self.bDoStartStored then
+			self.bDoStartStored = true
+			
+			self:OnEngineStartInitialized()
+		end
+		
+		self.bDoStopStored = false
+	end
+	
+	if not self.bDoStartStored then return end
+	
+	if self:InWater() then
+		self:CalcEngineStop( true )
+	end
+	
+	local RPM = self:GetRPM()
+	local IdleRPM = self:GetIdleRPM()
+	
+	if RPM < IdleRPM then
+		self:SetRPM( math.min(RPM + FrameTime() * 130,IdleRPM ) )
+		self.Thrust = -self:GetMaxThrustHeli()
+	else
+		self:StartEngine()
+		self.bDoStartStored = false
+	end
+end
+
+function ENT:CalcEngineStop( bDoStop )
+	if bDoStop== true then 
+		self.bDoStartStored = false
+		
+		if not self.bDoStopStored then
+			self.bDoStopStored = true
+			
+			self:OnEngineStopInitialized()
+			
+			if IsValid( self.RotorWashEnt ) then
+				self.RotorWashEnt:Remove()
+			end
+		end
+	end
+	
+	if not self.bDoStopStored then return end
+	
+	local RPM = self:GetRPM()
+	
+	if RPM > 0 then
+		self:SetRPM( math.Clamp(RPM - FrameTime() * 130 ,0,self:GetIdleRPM() ) )
+		self.Thrust = -self:GetMaxThrustHeli()
+	else
+		self:StopEngine()
+		self.bDoStopStored = false
+	end
+end
+
+function ENT:ToggleEngine()
+	if self:GetEngineActive() then
+		self:CalcEngineStop( true )
+	else
+		if self:IsEngineStartAllowed() and not self:IsDestroyed() and not self:InWater() and not self:GetRotorDestroyed() then
+			self:CalcEngineStart( true )
+		end
+	end
+end
+
+function ENT:StartEngine()
+	if self:GetEngineActive() or self:IsDestroyed() or self:InWater() or self:GetRotorDestroyed() then return end
+	
+	self:SetEngineActive( true )
+	self:OnEngineStarted()
+
+	local RotorWash = ents.Create( "env_rotorwash_emitter" )
+	
+	if IsValid( RotorWash ) then
+		RotorWash:SetPos( self:GetRotorPos() )
+		RotorWash:SetAngles( Angle(0,0,0) )
+		RotorWash:Spawn()
+		RotorWash:Activate()
+		RotorWash:SetParent( self )
+		
+		RotorWash.DoNotDuplicate = true
+		self:DeleteOnRemove( RotorWash )
+		self:dOwner( RotorWash )
+		
+		self.RotorWashEnt = RotorWash
+	end
+end
 
 function ENT:StopEngine()
 	if not self:GetEngineActive() then return end
@@ -351,6 +443,14 @@ function ENT:StopEngine()
 	if IsValid( self.RotorWashEnt ) then
 		self.RotorWashEnt:Remove()
 	end
+	
+	self:SetRPM( 0 )
+end
+
+function ENT:OnEngineStartInitialized()
+end
+
+function ENT:OnEngineStopInitialized()
 end
 
 function ENT:ToggleLandingGear()

@@ -45,7 +45,7 @@ function ENT:CalcEngineSound( RPM, Pitch, Doppler )
 	local THR = RPM / self:GetLimitRPM()
 	
 	if self.ENG then
-		self.ENG:ChangePitch( math.Clamp(100 + Doppler + THR * 20,0,255) )
+		self.ENG:ChangePitch( math.Clamp(math.min(RPM / self:GetIdleRPM(),1) * 100 + Doppler + THR * 20,0,255) )
 		self.ENG:ChangeVolume( math.Clamp(THR,0.8,1) )
 	end
 end

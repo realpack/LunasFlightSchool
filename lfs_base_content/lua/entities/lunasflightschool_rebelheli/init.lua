@@ -85,7 +85,14 @@ end
 function ENT:OnEngineStopped()
 end
 
+function ENT:OnEngineStartInitialized()
+	self:EmitSound( "lfs/heli_start_generic.ogg")
+end
+
 --[[
+function ENT:OnEngineStopInitialized()
+end
+
 function ENT:OnRotorCollide( Pos, Dir )
 	local effectdata = EffectData()
 		effectdata:SetOrigin( Pos )
