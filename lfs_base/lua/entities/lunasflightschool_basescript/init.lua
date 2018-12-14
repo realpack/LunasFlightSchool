@@ -537,19 +537,6 @@ function ENT:Use( ply )
 	self:SetPassenger( ply )
 end
 
-function ENT:GetPassengerSeats()
-	local pSeats = {}
-	local DriverSeat = self:GetDriverSeat()
-	
-	for _, v in pairs( self:GetChildren() ) do
-		if v:IsVehicle() and v ~= DriverSeat and v:GetClass():lower() == "prop_vehicle_prisoner_pod" then
-			table.insert( pSeats, v )
-		end
-	end
-	
-	return pSeats
-end
-
 function ENT:SetPassenger( ply )
 	if not IsValid( ply ) then return end
 	
@@ -929,9 +916,12 @@ function ENT:InitPod()
 		Pod:Activate()
 		Pod:SetParent( self )
 		Pod:SetNotSolid( true )
-		Pod:SetNoDraw( true )
+		--Pod:SetNoDraw( true )
+		Pod:SetColor( Color( 255, 255, 255, 0 ) ) 
+		Pod:SetRenderMode( RENDERMODE_TRANSALPHA )
 		Pod:DrawShadow( false )
 		Pod.DoNotDuplicate = true
+		Pod:SetNWInt( "pPodIndex", 1 )
 		
 		if IsValid( DSPhys ) then
 			DSPhys:EnableDrag( false ) 
@@ -963,9 +953,16 @@ function ENT:AddPassengerSeat( Pos, Ang )
 	Pod:Activate()
 	Pod:SetParent( self )
 	Pod:SetNotSolid( true )
-	Pod:SetNoDraw( true )
+	--Pod:SetNoDraw( true )
+	Pod:SetColor( Color( 255, 255, 255, 0 ) ) 
+	Pod:SetRenderMode( RENDERMODE_TRANSALPHA )
+	
 	Pod:DrawShadow( false )
 	Pod.DoNotDuplicate = true
+	
+	self.pPodKeyIndex = self.pPodKeyIndex and self.pPodKeyIndex + 1 or 2
+	
+	Pod:SetNWInt( "pPodIndex", self.pPodKeyIndex )
 	
 	self:DeleteOnRemove( Pod )
 	self:dOwner( Pod )

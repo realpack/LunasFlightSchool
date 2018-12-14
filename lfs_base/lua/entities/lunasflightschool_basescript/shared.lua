@@ -166,6 +166,22 @@ function ENT:GetRudderPos()
 	return self:LocalToWorld( self.RudderPos )
 end
 
+function ENT:GetPassengerSeats()
+	if not istable( self.pSeats ) then
+		self.pSeats = {}
+		
+		local DriverSeat = self:GetDriverSeat()
+
+		for _, v in pairs( self:GetChildren() ) do
+			if v ~= DriverSeat and v:GetClass():lower() == "prop_vehicle_prisoner_pod" then
+				table.insert( self.pSeats, v )
+			end
+		end
+	end
+	
+	return self.pSeats
+end
+
 sound.Add( {
 	name = "LFS_PLANE_EXPLOSION",
 	channel = CHAN_STATIC,

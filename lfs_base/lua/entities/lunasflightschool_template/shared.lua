@@ -42,10 +42,10 @@ ENT.IdleRPM = 300 -- idle rpm. this can be used to tweak the minimum flight spee
 ENT.MaxRPM = 2800 -- rpm at 100% throttle
 ENT.LimitRPM = 3000 -- max rpm when holding throttle key
 
-ENT.RotorPos = Vector(70,5,20) -- make sure you set these correctly or your plane will act wierd
-ENT.WingPos = Vector(50,5,20) -- make sure you set these correctly or your plane will act wierd
-ENT.ElevatorPos = Vector(-150,5,20) -- make sure you set these correctly or your plane will act wierd
-ENT.RudderPos = Vector(-150,5,20) -- make sure you set these correctly or your plane will act wierd
+ENT.RotorPos = Vector(70,5,20) -- make sure you set these correctly or your plane will act wierd.
+ENT.WingPos = Vector(50,5,20) -- make sure you set these correctly or your plane will act wierd. Excessive values can cause spazz.
+ENT.ElevatorPos = Vector(-150,5,20) -- make sure you set these correctly or your plane will act wierd. Excessive values can cause spazz.
+ENT.RudderPos = Vector(-150,5,20) -- make sure you set these correctly or your plane will act wierd. Excessive values can cause spazz.
 
 ENT.MaxVelocity = 1000 -- max theoretical velocity at 0 degree climb
 ENT.MaxPerfVelocity = 1500 -- speed in which the plane will have its maximum turning potential

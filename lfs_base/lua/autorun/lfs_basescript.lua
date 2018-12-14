@@ -1,14 +1,42 @@
 --DO NOT EDIT OR REUPLOAD THIS FILE
 
+local cVar = GetConVar( "ai_ignoreplayers" )
+local meta = FindMetaTable( "Player" )
+
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
+simfphys.LFS.VERSION = 91 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 95)
+
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.VERSION = 90 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 95)
-
-local cVar = GetConVar( "ai_ignoreplayers" )
 simfphys.LFS.IgnorePlayers = cVar and cVar:GetBool() or false
+
+simfphys.LFS.pSwitchKeys = {
+	[KEY_1] = 1,
+	[KEY_2] = 2,
+	[KEY_3] = 3,
+	[KEY_4] = 4,
+	[KEY_5] = 5,
+	[KEY_6] = 6,
+	[KEY_7] = 7,
+	[KEY_8] = 8,
+	[KEY_9] = 9,
+	[KEY_0] = 10,
+}
+
+simfphys.LFS.pSwitchKeysInv = {
+	[1] = KEY_1,
+	[2] = KEY_2,
+	[3] = KEY_3,
+	[4] = KEY_4,
+	[5] = KEY_5,
+	[6] = KEY_6,
+	[7] = KEY_7,
+	[8] = KEY_8,
+	[9] = KEY_9,
+	[10] = KEY_0,
+}
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -34,12 +62,6 @@ function simfphys.LFS:PlanesGetAll()
 	
 	return simfphys.LFS.PlanesStored
 end
-
-cvars.AddChangeCallback( "ai_ignoreplayers", function( convar, oldValue, newValue ) 
-	simfphys.LFS.IgnorePlayers = tonumber( newValue ) ~=0
-end)
-
-local meta = FindMetaTable( "Player" )
 
 function meta:lfsGetPlane()
 	if not self:InVehicle() then return NULL end
@@ -76,6 +98,9 @@ end
 if SERVER then 
 	resource.AddWorkshop("1571918906")
 	
+	util.AddNetworkString( "lfs_failstartnotify" )
+	util.AddNetworkString( "lfs_shieldhit" )
+	
 	function meta:lfsSetAITeam( nTeam )
 		nTeam = nTeam or 0
 		
@@ -86,8 +111,48 @@ if SERVER then
 		self:SetNWInt( "lfsAITeam", nTeam )
 	end
 	
-	util.AddNetworkString( "lfs_failstartnotify" )
-	util.AddNetworkString( "lfs_shieldhit" )
+	hook.Add( "PlayerButtonDown", "!!!lfsSeatswitcher", function( ply, button )
+		local vehicle = ply:lfsGetPlane()
+		
+		if not IsValid( vehicle ) then return end
+		
+		if button == KEY_1 then
+			if not IsValid( vehicle:GetDriver() ) and not vehicle:GetAI() then
+				ply:ExitVehicle()
+				
+				local DriverSeat = vehicle:GetDriverSeat()
+				
+				if IsValid( DriverSeat ) then
+					timer.Simple( FrameTime(), function()
+						if not IsValid( vehicle ) or not IsValid( ply ) then return end
+						if IsValid( vehicle:GetDriver() ) or not IsValid( DriverSeat ) or vehicle:GetAI() then return end
+						
+						ply:EnterVehicle( DriverSeat )
+						
+						timer.Simple( FrameTime() * 2, function()
+							if not IsValid( ply ) or not IsValid( vehicle ) then return end
+							ply:SetEyeAngles( Angle(0,vehicle:GetAngles().y,0) )
+						end)
+					end)
+				end
+			end
+		else
+			for _, Pod in pairs( vehicle:GetPassengerSeats() ) do
+				if Pod:GetNWInt( "pPodIndex", 3 ) == simfphys.LFS.pSwitchKeys[ button ] then
+					if not IsValid( Pod:GetDriver() ) then
+						ply:ExitVehicle()
+					
+						timer.Simple( FrameTime(), function()
+							if not IsValid( Pod ) or not IsValid( ply ) then return end
+							if IsValid( Pod:GetDriver() ) then return end
+							
+							ply:EnterVehicle( Pod )
+						end)
+					end
+				end
+			end
+		end
+	end )
 	
 	hook.Add( "PlayerLeaveVehicle", "!!LFS_Exit", function( ply, vehicle )
 		if not ply:IsPlayer() then return end
@@ -214,30 +279,11 @@ if SERVER then
 	end )
 end
 
-http.Fetch("https://github.com/Blu-x92/LunasFlightSchool", function(contents,size) 
-	local LatestVersion = tonumber( string.match( contents, "%s*(%d+)\n%s*</span>\n%s*commits" ) ) or 0  -- i took this from acf. I hope they don't mind
-	
-	if simfphys.LFS.GetVersion() >= LatestVersion then
-		print("[LFS] is up to date, Version: "..simfphys.LFS.GetVersion())
-	else
-		print("[LFS] a newer version is available! Version: "..LatestVersion..", You have Version: "..simfphys.LFS.GetVersion())
-		print("[LFS] get the latest version at https://github.com/Blu-x92/LunasFlightSchool")
-		
-		if CLIENT then 
-			timer.Simple(10, function() 
-				chat.AddText( Color( 255, 0, 0 ), "[LFS] a newer version is available!" )
-				surface.PlaySound( "lfs/notification/ding.ogg" )
-				timer.Simple(0.5, function() surface.PlaySound( "lfs/notification/"..math.random(1,19)..".ogg" ) end )
-			end)
-		end
-	end
-end)
-
 if CLIENT then
 	local HintPlayerAboutHisFuckingIncompetence = true
 	local smTran = 0
 
-	hook.Add( "CalcView", "LFS_calcview", function(ply, pos, angles, fov)
+	hook.Add( "CalcView", "!!!!LFS_calcview", function(ply, pos, angles, fov)
 		HintPlayerAboutHisFuckingIncompetence = false
 	 
 		if ply:GetViewEntity() ~= ply then return end
@@ -323,13 +369,28 @@ if CLIENT then
 		outline = false,
 	} )
 
+	surface.CreateFont( "LFS_FONT_SWITCHER", {
+		font = "Verdana",
+		extended = false,
+		size = 16,
+		weight = 2000,
+		blursize = 0,
+		scanlines = 0,
+		antialias = true,
+		underline = false,
+		italic = false,
+		strikeout = false,
+		symbol = false,
+		rotary = false,
+		shadow = true,
+		additive = false,
+		outline = false,
+	} )
+	
 	local MinZ = 0
-	local function PaintPlaneHud( ent )
+	local function PaintPlaneHud( ent, X, Y )
 
 		if not IsValid( ent ) then return end
-		
-		local X = ScrW()
-		local Y = ScrH()
 		
 		local vel = ent:GetVelocity():Length()
 		
@@ -365,10 +426,94 @@ if CLIENT then
 		
 		ent:LFSHudPaint( X, Y, {speed = speed, altitude = alt, PrimaryAmmo = AmmoPrimary, SecondaryAmmo = AmmoSecondary, Throttle = Throttle})
 	end
+	
+	local smHider = 0
+	local function PaintSeatSwitcher( ent, X, Y )
+		local me = LocalPlayer()
+		
+		if not IsValid( ent ) then return end
+		
+		local pSeats = ent:GetPassengerSeats()
+		local SeatCount = table.Count( pSeats ) 
+		
+		if SeatCount <= 0 then return end
+		
+		pSeats[0] = ent:GetDriverSeat()
+		
+		draw.NoTexture() 
+		
+		local MySeat = me:GetVehicle():GetNWInt( "pPodIndex", -1 )
+		
+		local Passengers = {}
+		for _, ply in pairs( player.GetAll() ) do
+			if ply:lfsGetPlane() == ent then
+				local Pod = ply:GetVehicle()
+				Passengers[ Pod:GetNWInt( "pPodIndex", -1 ) ] = ply:GetName()
+			end
+		end
+		if ent:GetAI() then
+			Passengers[1] = "[AI] "..ent.PrintName
+		end
+		
+		me.SwitcherTime = me.SwitcherTime or 0
+		me.oldPassengers = me.oldPassengers or {}
+		
+		local Time = CurTime()
+		for k, v in pairs( Passengers ) do
+			if me.oldPassengers[k] ~= v then
+				me.oldPassengers[k] = v
+				me.SwitcherTime = Time + 2
+			end
+		end
+		for k, v in pairs( me.oldPassengers ) do
+			if not Passengers[k] then
+				me.oldPassengers[k] = nil
+				me.SwitcherTime = Time + 2
+			end
+		end
+		
+		for _, v in pairs( simfphys.LFS.pSwitchKeysInv ) do
+			if input.IsKeyDown(v) then
+				me.SwitcherTime = Time + 2
+			end
+		end
+		
+		local Hide = me.SwitcherTime > Time
+		smHider = smHider + ((Hide and 1 or 0) - smHider) * FrameTime() * 15
+		local Alpha1 = 120 + 130 * smHider 
+		local HiderOffset = 300 * smHider
+		local Offset = -50
+		local yPos = Y - (SeatCount + 1) * 30 - 10
+		
+		for _, Pod in pairs( pSeats ) do
+			local I = Pod:GetNWInt( "pPodIndex", -1 )
+			if I >= 0 then
+				if I == MySeat then
+					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,100,200,50 + 50 * smHider) )
+				else
+					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,0,0,50 + 50 * smHider) )
+				end
+				if Hide then
+					if Passengers[I] then
+						draw.DrawText( Passengers[I], "LFS_FONT_SWITCHER", X + 40 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255,  Alpha1 ), TEXT_ALIGN_LEFT )
+					else
+						draw.DrawText( "-", "LFS_FONT_SWITCHER", X + 40 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255,  Alpha1 ), TEXT_ALIGN_LEFT )
+					end
+					
+					draw.DrawText( "["..I.."]", "LFS_FONT_SWITCHER", X + 17 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255, Alpha1 ), TEXT_ALIGN_CENTER )
+				else
+					if Passengers[I] then
+						draw.DrawText( "[^"..I.."]", "LFS_FONT_SWITCHER", X + 17 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255, Alpha1 ), TEXT_ALIGN_CENTER )
+					else
+						draw.DrawText( "["..I.."]", "LFS_FONT_SWITCHER", X + 17 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255, Alpha1 ), TEXT_ALIGN_CENTER )
+					end
+				end
+			end
+		end
+	end
 
 	local NextFind = 0
 	local AllPlanes = {}
-
 	local function PaintPlaneIdentifier( ent )
 		if NextFind < CurTime() then
 			NextFind = CurTime() + 3
@@ -424,7 +569,7 @@ if CLIENT then
 		end
 	end )
 
-	hook.Add( "HUDPaint", "LFS_crosshair", function()
+	hook.Add( "HUDPaint", "!!!!LFS_hud", function()
 		local ply = LocalPlayer()
 		
 		if ply:GetViewEntity() ~= ply then return end
@@ -432,7 +577,16 @@ if CLIENT then
 		local Pod = ply:GetVehicle()
 		local Parent = ply:lfsGetPlane()
 		
-		if not IsValid( Pod ) or not IsValid( Parent ) then return end
+		if not IsValid( Pod ) or not IsValid( Parent ) then 
+			ply.oldPassengers = {}
+			
+			return
+		end
+		
+		local X = ScrW()
+		local Y = ScrH()
+		
+		PaintSeatSwitcher( Parent, X, Y )
 		
 		if Parent:GetDriverSeat() ~= Pod then return end
 		
@@ -442,8 +596,6 @@ if CLIENT then
 				Parent.ERRORSOUND = true
 			end
 			
-			local X = ScrW()
-			local Y = ScrH()
 			local HintCol = Color(255,0,0, 255 )
 			
 			surface.SetDrawColor( 0, 0, 0, 255 )
@@ -461,8 +613,8 @@ if CLIENT then
 			return
 		end
 		
-		PaintPlaneHud(Parent)
-		PaintPlaneIdentifier(Parent)
+		PaintPlaneHud( Parent, X, Y )
+		PaintPlaneIdentifier( Parent )
 		
 		local startpos =  Parent:GetRotorPos()
 		local TracePlane = util.TraceLine( {
@@ -524,3 +676,26 @@ if CLIENT then
 		end
 	end)
 end
+
+cvars.AddChangeCallback( "ai_ignoreplayers", function( convar, oldValue, newValue ) 
+	simfphys.LFS.IgnorePlayers = tonumber( newValue ) ~=0
+end)
+
+http.Fetch("https://github.com/Blu-x92/LunasFlightSchool", function(contents,size) 
+	local LatestVersion = tonumber( string.match( contents, "%s*(%d+)\n%s*</span>\n%s*commits" ) ) or 0  -- i took this from acf. I hope they don't mind
+	
+	if simfphys.LFS.GetVersion() >= LatestVersion then
+		print("[LFS] is up to date, Version: "..simfphys.LFS.GetVersion())
+	else
+		print("[LFS] a newer version is available! Version: "..LatestVersion..", You have Version: "..simfphys.LFS.GetVersion())
+		print("[LFS] get the latest version at https://github.com/Blu-x92/LunasFlightSchool")
+		
+		if CLIENT then 
+			timer.Simple(10, function() 
+				chat.AddText( Color( 255, 0, 0 ), "[LFS] a newer version is available!" )
+				surface.PlaySound( "lfs/notification/ding.ogg" )
+				timer.Simple(0.5, function() surface.PlaySound( "lfs/notification/"..math.random(1,19)..".ogg" ) end )
+			end)
+		end
+	end
+end)

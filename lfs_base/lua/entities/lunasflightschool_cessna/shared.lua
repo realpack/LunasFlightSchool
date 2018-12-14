@@ -32,7 +32,7 @@ ENT.ElevatorPos = Vector(-197.93,0,59.39)
 ENT.RudderPos = Vector(-212.54,0,89.75)
 
 ENT.WheelAutoRetract = true
-ENT.WheelMass = 50
+ENT.WheelMass = 150
 ENT.WheelRadius = 12
 ENT.WheelPos_C = Vector(53.3,0,5)
 ENT.WheelPos_L = Vector(-14.1,50.8,8.7)
