@@ -280,6 +280,9 @@ if SERVER then
 end
 
 if CLIENT then
+	local cvarVolume = CreateClientConVar( "lfs_volume", 1, true, false)
+	local cvarCamFocus = CreateClientConVar( "lfs_camerafocus", 0, true, false)
+	
 	local HintPlayerAboutHisFuckingIncompetence = true
 	local smTran = 0
 
@@ -295,11 +298,13 @@ if CLIENT then
 		
 		smTran = smTran + ((ply:KeyDown( IN_WALK ) and 0 or 0.8) - smTran) * FrameTime() * 10
 		
+		local cvarFocus = math.Clamp( cvarCamFocus:GetFloat() , -1, 1 )
+
 		local view = {}
 		view.origin = pos
 		view.fov = fov
 		view.drawviewer = true
-		view.angles = ((Parent:GetForward() * smTran + ply:EyeAngles():Forward()) * 0.5):Angle()
+		view.angles = ((Parent:GetForward() * smTran * (1 + cvarFocus) + ply:EyeAngles():Forward() * (1 - cvarFocus)) * 0.5):Angle()
 		view.angles.r = 0
 		
 		if Parent:GetDriverSeat() ~= Pod then
@@ -480,7 +485,7 @@ if CLIENT then
 		
 		local Hide = me.SwitcherTime > Time
 		smHider = smHider + ((Hide and 1 or 0) - smHider) * FrameTime() * 15
-		local Alpha1 = 120 + 130 * smHider 
+		local Alpha1 = 75 + 170 * smHider 
 		local HiderOffset = 300 * smHider
 		local Offset = -50
 		local yPos = Y - (SeatCount + 1) * 30 - 10
@@ -489,9 +494,9 @@ if CLIENT then
 			local I = Pod:GetNWInt( "pPodIndex", -1 )
 			if I >= 0 then
 				if I == MySeat then
-					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,100,200,50 + 50 * smHider) )
+					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(127,0,0,50 + 100 * smHider) )
 				else
-					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,0,0,50 + 50 * smHider) )
+					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,0,0,50 + 100 * smHider) )
 				end
 				if Hide then
 					if Passengers[I] then
@@ -656,6 +661,67 @@ if CLIENT then
 		surface.DrawLine( HitPlane.x, HitPlane.y - 10, HitPlane.x, HitPlane.y - 20 ) 
 		
 		DrawCircle( HitPilot.x, HitPilot.y, 34 )
+	end )
+	
+	local Frame
+	local bgMat = Material( "lfs_controlpanel_bg.png" )
+	local function OpenMenu()
+		if not IsValid( Frame ) then
+			Frame = vgui.Create( "DFrame" )
+			Frame:SetSize( 400, 200 )
+			Frame:SetTitle( "" )
+			Frame:SetDraggable( true )
+			Frame:MakePopup()
+			Frame:Center()
+			Frame.Paint = function(self, w, h )
+				draw.RoundedBox( 8, 0, 0, w, h, Color( 0, 0, 0, 255 ) )
+				draw.RoundedBox( 8, 1, 26, w-2, h-27, Color( 120, 120, 120, 255 ) )
+				draw.RoundedBox( 8, 0, 0, w, 25, Color( 127, 0, 0, 255 ) )
+				draw.SimpleText( "[LFS] Control Panel ", "LFS_FONT", 5, 11, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+				
+				surface.SetDrawColor( 255, 255, 255, 50 )
+				surface.SetMaterial( bgMat )
+				surface.DrawTexturedRect( 0, -50, w, w )
+			end
+			
+			local slider = vgui.Create( "DNumSlider", Frame)
+			slider:SetPos( 20, 40 )
+			slider:SetSize( 300, 20 )
+			slider:SetText( "Engine Volume" )
+			slider:SetMin( 0 )
+			slider:SetMax( 1 )
+			slider:SetDecimals( 2 )
+			slider:SetConVar( "lfs_volume" )
+			
+			local slider = vgui.Create( "DNumSlider", Frame)
+			slider:SetPos( 20, 80 )
+			slider:SetSize( 300, 20 )
+			slider:SetText( "Camera Focus" )
+			slider:SetMin( -1 )
+			slider:SetMax( 1 )
+			slider:SetDecimals( 2 )
+			slider:SetConVar( "lfs_camerafocus" )
+		end
+	end
+	
+	hook.Add( "EntityEmitSound", "!!!lfs_volumemanager", function( t )
+
+		if t.Entity.LFS then
+			t.Volume = t.Volume * cvarVolume:GetFloat()
+			return true
+		end
+	end )
+
+	list.Set( "DesktopWindows", "LFSMenu", {
+		title = "[LFS] Panel",
+		icon = "icon64/iconlfs.png",
+		init = function( icon, window )
+			OpenMenu()
+		end
+	} )
+	
+	concommand.Add( "lfs_openmenu", function( ply, cmd, args )
+		OpenMenu()
 	end )
 	
 	timer.Simple(10, function()
