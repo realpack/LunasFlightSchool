@@ -6,7 +6,6 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 94 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 95)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -710,14 +709,20 @@ if CLIENT then
 				draw.RoundedBox( 8, 0, 0, w, h, Color( 0, 0, 0, 255 ) )
 				draw.RoundedBox( 8, 1, 26, w-2, h-27, Color( 120, 120, 120, 255 ) )
 				draw.RoundedBox( 8, 0, 0, w, 25, Color( 127, 0, 0, 255 ) )
-				draw.SimpleText( "[LFS] Control Panel ", "LFS_FONT", 5, 11, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+				draw.SimpleText( "[LFS] Planes - Control Panel ", "LFS_FONT", 5, 11, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
 				
 				surface.SetDrawColor( 255, 255, 255, 50 )
 				surface.SetMaterial( bgMat )
 				surface.DrawTexturedRect( 0, -50, w, w )
 				
 				draw.DrawText( "( -1 = Focus Mouse   1 = Focus Plane )", "LFS_FONT_PANEL", 20, 95, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
-				draw.DrawText( "( This will only affect new connected Players )", "LFS_FONT_PANEL", 20, 135, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+				
+				if LocalPlayer():IsSuperAdmin() then
+					draw.DrawText( "( This will only affect new connected Players )", "LFS_FONT_PANEL", 20, 135, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+				end
+				
+				draw.DrawText( "v"..simfphys.LFS.GetVersion()..".GIT", "LFS_FONT_PANEL", w - 15, h - 20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM )
+				
 			end
 			
 			local slider = vgui.Create( "DNumSlider", Frame)
@@ -778,7 +783,7 @@ if CLIENT then
 	end )
 
 	list.Set( "DesktopWindows", "LFSMenu", {
-		title = "[LFS] Panel",
+		title = "[LFS] Settings",
 		icon = "icon64/iconlfs.png",
 		init = function( icon, window )
 			OpenMenu()
