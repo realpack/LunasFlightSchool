@@ -6,11 +6,14 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 93 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 95)
+simfphys.LFS.VERSION = 94 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 95)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
 simfphys.LFS.IgnorePlayers = cVar and cVar:GetBool() or false
+
+simfphys.LFS.FreezeTeams = CreateConVar( "lfs_freeze_teams", "0", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"enable/disable auto ai-team switching" )
+simfphys.LFS.PlayerDefaultTeam = CreateConVar( "lfs_default_teams", "0", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"set default player ai-team" )
 
 simfphys.LFS.pSwitchKeys = {
 	[KEY_1] = 1,
@@ -92,7 +95,7 @@ function meta:lfsGetPlane()
 end
 
 function meta:lfsGetAITeam()
-	return self:GetNWInt( "lfsAITeam", 0 )
+	return self:GetNWInt( "lfsAITeam", simfphys.LFS.PlayerDefaultTeam:GetInt() )
 end
 
 if SERVER then 
@@ -100,9 +103,19 @@ if SERVER then
 	
 	util.AddNetworkString( "lfs_failstartnotify" )
 	util.AddNetworkString( "lfs_shieldhit" )
+	util.AddNetworkString( "lfs_admin_setconvar" )
+	
+	net.Receive( "lfs_admin_setconvar", function( length, ply )
+		if not IsValid( ply ) or not ply:IsSuperAdmin() then return end
+		
+		local ConVar = net.ReadString()
+		local Value = tonumber( net.ReadString() )
+		
+		RunConsoleCommand( ConVar, Value ) 
+	end)
 	
 	function meta:lfsSetAITeam( nTeam )
-		nTeam = nTeam or 0
+		nTeam = nTeam or simfphys.LFS.PlayerDefaultTeam:GetInt()
 		
 		if self:lfsGetAITeam() ~= nTeam then
 			self:PrintMessage( HUD_PRINTTALK, "[LFS] Your AI-Team has been updated to: Team "..nTeam )
@@ -162,7 +175,9 @@ if SERVER then
 		
 		if not IsValid( Pod ) or not IsValid( Parent ) then return end
 		
-		ply:lfsSetAITeam( Parent:GetAITEAM() )
+		if not simfphys.LFS.FreezeTeams:GetBool() then
+			ply:lfsSetAITeam( Parent:GetAITEAM() )
+		end
 		
 		local ent = Pod
 		local b_ent = Parent
@@ -296,15 +311,15 @@ if CLIENT then
 		
 		if not IsValid( Pod ) or not IsValid( Parent ) then return end
 		
-		smTran = smTran + ((ply:KeyDown( IN_WALK ) and 0 or 0.8) - smTran) * FrameTime() * 10
-		
 		local cvarFocus = math.Clamp( cvarCamFocus:GetFloat() , -1, 1 )
-
+		
+		smTran = smTran + ((ply:KeyDown( IN_WALK ) and 0 or 1) - smTran) * FrameTime() * 10
+		
 		local view = {}
 		view.origin = pos
 		view.fov = fov
 		view.drawviewer = true
-		view.angles = ((Parent:GetForward() * smTran * (1 + cvarFocus) + ply:EyeAngles():Forward() * (1 - cvarFocus)) * 0.5):Angle()
+		view.angles = (Parent:GetForward() * (1 + cvarFocus) * smTran * 0.8 + ply:EyeAngles():Forward() * math.max(1 - cvarFocus, 1 - smTran)):Angle()
 		view.angles.r = 0
 		
 		if Parent:GetDriverSeat() ~= Pod then
@@ -388,6 +403,24 @@ if CLIENT then
 		symbol = false,
 		rotary = false,
 		shadow = true,
+		additive = false,
+		outline = false,
+	} )
+	
+	surface.CreateFont( "LFS_FONT_PANEL", {
+		font = "Arial",
+		extended = false,
+		size = 14,
+		weight = 1,
+		blursize = 0,
+		scanlines = 0,
+		antialias = true,
+		underline = false,
+		italic = false,
+		strikeout = false,
+		symbol = false,
+		rotary = false,
+		shadow = false,
 		additive = false,
 		outline = false,
 	} )
@@ -682,6 +715,9 @@ if CLIENT then
 				surface.SetDrawColor( 255, 255, 255, 50 )
 				surface.SetMaterial( bgMat )
 				surface.DrawTexturedRect( 0, -50, w, w )
+				
+				draw.DrawText( "( -1 = Focus Mouse   1 = Focus Plane )", "LFS_FONT_PANEL", 20, 95, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+				draw.DrawText( "( This will only affect new connected Players )", "LFS_FONT_PANEL", 20, 135, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 			end
 			
 			local slider = vgui.Create( "DNumSlider", Frame)
@@ -701,6 +737,35 @@ if CLIENT then
 			slider:SetMax( 1 )
 			slider:SetDecimals( 2 )
 			slider:SetConVar( "lfs_camerafocus" )
+			
+			if LocalPlayer():IsSuperAdmin() then
+				local slider = vgui.Create( "DNumSlider", Frame)
+				slider:SetPos( 20, 120 )
+				slider:SetSize( 300, 20 )
+				slider:SetText( "Player Default AI-Team" )
+				slider:SetMin( 0 )
+				slider:SetMax( 2 )
+				slider:SetDecimals( 0 )
+				slider:SetConVar( "lfs_default_teams" )
+				function slider:OnValueChanged( val )
+					net.Start("lfs_admin_setconvar")
+						net.WriteString("lfs_default_teams")
+						net.WriteString( tostring( val ) )
+					net.SendToServer()
+				end
+				
+				local CheckBox = vgui.Create( "DCheckBoxLabel", Frame)
+				CheckBox:SetPos( 20, 160 )
+				CheckBox:SetText( "Freeze Player AI-Team" )
+				CheckBox:SetValue( GetConVar( "lfs_freeze_teams" ):GetInt() )
+				CheckBox:SizeToContents()
+				function CheckBox:OnChange( val )
+					net.Start("lfs_admin_setconvar")
+						net.WriteString("lfs_freeze_teams")
+						net.WriteString( tostring( val and 1 or 0 ) )
+					net.SendToServer()
+				end
+			end
 		end
 	end
 	
