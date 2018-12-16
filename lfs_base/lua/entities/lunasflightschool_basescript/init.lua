@@ -9,6 +9,7 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 	if not tr.Hit then return end
 
 	local ent = ents.Create( ClassName )
+	ent.dOwnerEntLFS = ply
 	ent:SetPos( tr.HitPos + tr.HitNormal * 15 )
 	ent:Spawn()
 	ent:Activate()
@@ -750,8 +751,8 @@ function ENT:InitWheels()
 				self:DeleteOnRemove( wheel_L )
 				self:dOwner( wheel_L )
 				
-				constraint.Axis( wheel_L, self, 0, 0, LWpObj:GetMassCenter(), wheel_L:GetPos(), 0, 0, 50, 0, Vector(1,0,0) , false )
-				constraint.NoCollide( wheel_L, self, 0, 0 ) 
+				self:dOwner( constraint.Axis( wheel_L, self, 0, 0, LWpObj:GetMassCenter(), wheel_L:GetPos(), 0, 0, 50, 0, Vector(1,0,0) , false ) )
+				self:dOwner( constraint.NoCollide( wheel_L, self, 0, 0 ) )
 				
 				LWpObj:EnableMotion( true )
 				LWpObj:EnableDrag( false ) 
@@ -798,8 +799,8 @@ function ENT:InitWheels()
 				self:DeleteOnRemove( wheel_R )
 				self:dOwner( wheel_R )
 				
-				constraint.Axis( wheel_R, self, 0, 0, RWpObj:GetMassCenter(), wheel_R:GetPos(), 0, 0, 50, 0, Vector(1,0,0) , false )
-				constraint.NoCollide( wheel_R, self, 0, 0 ) 
+				self:dOwner( constraint.Axis( wheel_R, self, 0, 0, RWpObj:GetMassCenter(), wheel_R:GetPos(), 0, 0, 50, 0, Vector(1,0,0) , false ) )
+				self:dOwner( constraint.NoCollide( wheel_R, self, 0, 0 ) )
 				
 				RWpObj:EnableMotion( true )
 				RWpObj:EnableDrag( false ) 
@@ -869,9 +870,9 @@ function ENT:InitWheels()
 					self:DeleteOnRemove( wheel_C )
 					self:dOwner( wheel_C )
 					
-					constraint.AdvBallsocket(wheel_C, SteerMaster,0,0,Vector(0,0,0),Vector(0,0,0),0,0, -180, -0.01, -0.01, 180, 0.01, 0.01, 0, 0, 0, 1, 0)
-					constraint.AdvBallsocket(wheel_C,self,0,0,Vector(0,0,0),Vector(0,0,0),0,0, -180, -180, -180, 180, 180, 180, 0, 0, 0, 0, 0)
-					constraint.NoCollide( wheel_C, self, 0, 0 ) 
+					self:dOwner( constraint.AdvBallsocket(wheel_C, SteerMaster,0,0,Vector(0,0,0),Vector(0,0,0),0,0, -180, -0.01, -0.01, 180, 0.01, 0.01, 0, 0, 0, 1, 0) )
+					self:dOwner( constraint.AdvBallsocket(wheel_C,self,0,0,Vector(0,0,0),Vector(0,0,0),0,0, -180, -180, -180, 180, 180, 180, 0, 0, 0, 0, 0) )
+					self:dOwner( constraint.NoCollide( wheel_C, self, 0, 0 ) )
 					
 					CWpObj:EnableMotion( true )
 					CWpObj:EnableDrag( false ) 
@@ -1023,11 +1024,11 @@ function ENT:dOwner( eEnt )
 	
 	if not CPPI then return end
 	
-	local Owner = self:CPPIGetOwner( )
+	local Owner = self.dOwnerEntLFS
 	if not IsEntity( Owner ) then return end
 	
 	if IsValid( Owner ) then
-		Pod:CPPISetOwner( ply )
+		eEnt:CPPISetOwner( Owner )
 	end
 end
 
@@ -1112,6 +1113,7 @@ function ENT:OnTakeDamage( dmginfo )
 			self.particleeffect:Spawn()
 			self.particleeffect:Activate()
 			self.particleeffect:SetParent( self )
+			self:dOwner( self.particleeffect )
 			
 			if self:GetAI() then
 				timer.Simple( math.Rand(0,8), function()
