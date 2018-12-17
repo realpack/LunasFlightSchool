@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 102 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 112)
+simfphys.LFS.VERSION = 103 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 112)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -151,16 +151,18 @@ if SERVER then
 			end
 		else
 			for _, Pod in pairs( vehicle:GetPassengerSeats() ) do
-				if Pod:GetNWInt( "pPodIndex", 3 ) == simfphys.LFS.pSwitchKeys[ button ] then
-					if not IsValid( Pod:GetDriver() ) then
-						ply:ExitVehicle()
-					
-						timer.Simple( FrameTime(), function()
-							if not IsValid( Pod ) or not IsValid( ply ) then return end
-							if IsValid( Pod:GetDriver() ) then return end
-							
-							ply:EnterVehicle( Pod )
-						end)
+				if IsValid( Pod ) then
+					if Pod:GetNWInt( "pPodIndex", 3 ) == simfphys.LFS.pSwitchKeys[ button ] then
+						if not IsValid( Pod:GetDriver() ) then
+							ply:ExitVehicle()
+						
+							timer.Simple( FrameTime(), function()
+								if not IsValid( Pod ) or not IsValid( ply ) then return end
+								if IsValid( Pod:GetDriver() ) then return end
+								
+								ply:EnterVehicle( Pod )
+							end)
+						end
 					end
 				end
 			end
