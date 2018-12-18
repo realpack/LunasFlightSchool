@@ -41,6 +41,7 @@ ENT.SeatAng = Angle(0,-90,0)
 ENT.IdleRPM = 300 -- idle rpm. this can be used to tweak the minimum flight speed
 ENT.MaxRPM = 2800 -- rpm at 100% throttle
 ENT.LimitRPM = 3000 -- max rpm when holding throttle key
+ENT.RPMThrottleIncrement = 350 -- how fast the RPM should increase/decrease per second
 
 ENT.RotorPos = Vector(70,5,20) -- make sure you set these correctly or your plane will act wierd.
 ENT.WingPos = Vector(50,5,20) -- make sure you set these correctly or your plane will act wierd. Excessive values can cause spazz.
