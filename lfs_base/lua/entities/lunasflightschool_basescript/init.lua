@@ -139,11 +139,19 @@ function ENT:Think()
 	self:HandleStart()
 	self:HandleLandingGear()
 	self:HandleWeapons()
-	self:RunEngine()
+	self:HandleEngine()
 	self:CalcFlight()
 	self:PrepExplode()
 	self:RechargeShield()
 	self:OnTick()
+	
+	if not self.REchecked then
+		self.REchecked = true
+		if isfunction( self.RunEngine ) then
+			print("[LFS]: "..self.PrintName.." ("..self:GetClass()..") is using an outdated LFS-function. Please contact the Creator.")
+			print("Note for Creator: To change Throttle increments use 'ENT.RPMThrottleIncrement' variable instead. More info can be found in the Template. Throttle sounds should be done in 'ENT:OnKeyThrottle( bKeyPressed )'.")
+		end
+	end
 	
 	self:NextThink( CurTime() )
 	
@@ -239,7 +247,7 @@ function ENT:CalcFlight()
 		end
 	end
 
-	local RollRate = math.min(self:GetVelocity():Length() / (math.min(self:GetMaxVelocity(),3000) * 0.5),1)
+	local RollRate = math.min(self:GetVelocity():Length() / math.min(self:GetMaxVelocity(),3000),1)
 	RudderFadeOut = math.max(RudderFadeOut,1-RollRate)
 	
 	local Stability = self:GetStability()
@@ -249,7 +257,7 @@ function ENT:CalcFlight()
 	local AutoRoll = (-LocalAngYaw * 22 * RollRate + LocalAngRoll * 3.5 * RudderFadeOut) * WingFinFadeOut
 	
 	local Roll = math.Clamp( (not A and not D) and AutoRoll or ManualRoll,-MaxRoll ,MaxRoll )
-	local Yaw = math.Clamp(-LocalAngYaw * 80 * RudderFadeOut,-MaxYaw,MaxYaw)
+	local Yaw = math.Clamp(-LocalAngYaw * 160 * RudderFadeOut,-MaxYaw,MaxYaw)
 	local Pitch = math.Clamp(-LocalAngPitch * 25,-MaxPitch,MaxPitch)
 	
 	local WingVel = self:GetWingVelocity()
@@ -265,6 +273,10 @@ function ENT:CalcFlight()
 	PhysObj:ApplyForceOffset( -self:GetElevatorUp() * (ElevatorVel + Pitch * Stability) * Mass * Stability, self:GetElevatorPos() )
 	
 	PhysObj:ApplyForceOffset( -self:GetRudderUp() * (math.Clamp(RudderVel,-MaxYaw,MaxYaw) + Yaw * Stability) *  Mass * Stability, self:GetRudderPos() )
+    
+	if isnumber( self.Stability ) then
+		PhysObj:ApplyForceCenter( self:GetRight() * self:WorldToLocal( self:GetPos() + self:GetVelocity() ).y * Mass * 0.01 )
+	end
     
 	local MaxAngle = 30
     
@@ -292,19 +304,20 @@ function ENT:HitGround()
 	return tr.Hit 
 end
 
-function ENT:RunEngine()
+function ENT:OnKeyThrottle( bPressed )
+end
+
+function ENT:HandleEngine()
 	local IdleRPM = self:GetIdleRPM()
-	local MaxRPM =self:GetMaxRPM()
+	local MaxRPM = self:GetMaxRPM()
 	local LimitRPM = self:GetLimitRPM()
 	local MaxVelocity = self:GetMaxVelocity()
 	
+	local EngActive = self:GetEngineActive()
+	
 	self.TargetRPM = self.TargetRPM or 0
 	
-	if self:IsDestroyed() then
-		self:StopEngine()
-	end
-	
-	if self:GetEngineActive() then
+	if EngActive then
 		local Pod = self:GetDriverSeat()
 		
 		if not IsValid( Pod ) then return end
@@ -313,9 +326,19 @@ function ENT:RunEngine()
 		
 		local RPMAdd = 0
 		local KeyThrottle = false
+		local KeyBrake = false
+		
 		if IsValid( Driver ) then 
 			KeyThrottle = Driver:KeyDown( IN_FORWARD )
-			RPMAdd = ((KeyThrottle and 350 or 0) - (Driver:KeyDown( IN_BACK ) and 350 or 0)) * FrameTime()
+			KeyBrake = Driver:KeyDown( IN_BACK )
+			
+			RPMAdd = ((KeyThrottle and self:GetThrottleIncrement() or 0) - (Driver:KeyDown( IN_BACK ) and self:GetThrottleIncrement() or 0)) * FrameTime()
+		end
+		
+		if KeyThrottle ~= self.oldKeyThrottle then
+			self.oldKeyThrottle = KeyThrottle
+			
+			self:OnKeyThrottle( KeyThrottle )
 		end
 		
 		self.TargetRPM = math.Clamp( self.TargetRPM + RPMAdd,IdleRPM,KeyThrottle and LimitRPM or MaxRPM)
@@ -326,14 +349,28 @@ function ENT:RunEngine()
 	self:SetRPM( self:GetRPM() + (self.TargetRPM - self:GetRPM()) * FrameTime() )
 	
 	local PhysObj = self:GetPhysicsObject()
+	
 	if not IsValid( PhysObj ) then return end
 	
-	local Throttle = self:GetRPM() / self:GetLimitRPM()
+	local fThrust = MaxVelocity * (self:GetRPM() / self:GetLimitRPM()) - self:GetForwardVelocity()
 	
-	local Power = math.max(MaxVelocity * Throttle - self:GetForwardVelocity(),0) / MaxVelocity * self:GetMaxThrust() * self:GetLimitRPM()
+	if not isnumber( self.Stability ) then fThrust = math.max( fThrust ,0 ) end
 	
-	PhysObj:ApplyForceOffset( self:GetForward() * Power * FrameTime(),  self:GetRotorPos() )
+	local Force = fThrust / MaxVelocity * self:GetMaxThrust() * self:GetLimitRPM()
 	
+	if self:IsDestroyed() or not EngActive then
+		self:StopEngine()
+		
+		return
+	end
+	
+	PhysObj:ApplyForceOffset( self:GetForward() * Force * FrameTime(),  self:GetRotorPos() )
+end
+
+function ENT:GetThrottleIncrement()
+	self.RPMThrottleIncrement = isnumber( self.RPMThrottleIncrement ) and self.RPMThrottleIncrement or (isnumber( self.Stability ) and 2000 or 350)
+	
+	return self.RPMThrottleIncrement
 end
 
 function ENT:HandleActive()
@@ -1192,6 +1229,14 @@ end
 function ENT:PhysicsCollide( data, physobj )
 	if self:IsDestroyed() then
 		self.MarkForDestruction = true
+	end
+	
+	if IsValid( data.HitEntity ) then
+		if data.HitEntity:IsPlayer() or data.HitEntity:IsNPC() then
+			self:EmitSound( "MetalVehicle.ImpactSoft" )
+			
+			return
+		end
 	end
 	
 	if data.Speed > 60 and data.DeltaTime > 0.2 then
