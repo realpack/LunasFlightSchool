@@ -68,6 +68,18 @@ end
 function ENT:RemoveAI() -- called when the ai gets disabled
 end
 
+function ENT:OnKeyThrottle( bPressed )
+	if self:CanSound() then -- makes sure the player cant spam sounds
+		if bPressed then -- if throttle key is pressed
+			--self:EmitSound( "buttons/button3.wav" )
+			--self:DelayNextSound( 1 ) -- when the next sound should be allowed to be played
+		else
+			--self:EmitSound( "buttons/button11.wav" )
+			--self:DelayNextSound( 0.5 )
+		end
+	end
+end
+
 function ENT:OnEngineStarted()
 	--[[ play engine start sound? ]]--
 	self:EmitSound( "vehicles/airboat/fan_motor_start1.wav" )
