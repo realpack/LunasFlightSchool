@@ -247,8 +247,8 @@ function ENT:CalcFlight()
 		end
 	end
 
-	local RollRate = math.min(self:GetVelocity():Length() / math.min(self:GetMaxVelocity(),3000),1)
-	RudderFadeOut = math.max(RudderFadeOut,1-RollRate)
+	local RollRate = math.min(self:GetVelocity():Length() / math.min(self:GetMaxVelocity() * 0.5,3000),1)
+	RudderFadeOut = math.max(RudderFadeOut,1 - RollRate)
 	
 	local Stability = self:GetStability()
 
@@ -354,7 +354,7 @@ function ENT:HandleEngine()
 	
 	local fThrust = MaxVelocity * (self:GetRPM() / self:GetLimitRPM()) - self:GetForwardVelocity()
 	
-	if not isnumber( self.Stability ) then fThrust = math.max( fThrust ,0 ) end
+	if not isnumber( self.Stability ) and not self:GetAI() then fThrust = math.max( fThrust ,0 ) end
 	
 	local Force = fThrust / MaxVelocity * self:GetMaxThrust() * self:GetLimitRPM()
 	
@@ -1434,10 +1434,17 @@ function ENT:RunAI()
 			self.TargetRPM = self:GetLimitRPM()
 			TargetPos.z = self:GetPos().z + 2000
 		end
+		
+		if self.LandingGearUp and mySpeed < 100 and not self:IsPlayerHolding() then
+			local pObj = self:GetPhysicsObject()
+			if IsValid( pObj ) then
+				if pObj:IsMotionEnabled() then
+					self:Explode()
+				end
+			end
+		end
 	else
 		if self:GetStability() < 0.3 then
-			self.TargetRPM = self:GetMaxRPM()
-			
 			self.TargetRPM = self:GetLimitRPM()
 			TargetPos.z = self:GetPos().z + 600
 		else
@@ -1473,10 +1480,8 @@ function ENT:RunAI()
 					else
 						if alt > 6000 and self:AITargetInfront( Target, 90 ) then
 							TargetPos = Target:GetPos()
-							--print("follow target")
 						else
 							TargetPos = TargetPos
-							--print("avoid target")
 						end
 						
 						self.TargetRPM = self:GetMaxRPM()
