@@ -39,7 +39,7 @@ ENT.RudderPos = Vector(-162.48,0,102.96)
 
 ENT.MaxVelocity = 2350
 
-ENT.MaxThrust = 650
+ENT.MaxThrust = 700
 
 ENT.MaxTurnPitch = 300
 ENT.MaxTurnYaw = 450
