@@ -19,6 +19,10 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 
 end
 
+function ENT:OnTick()
+	self:DisableWep( self:GetLGear() < 0.99 )
+end
+
 function ENT:RunOnSpawn()
 	self:SetGunnerSeat( self:AddPassengerSeat( Vector(-107,0,18), Angle(0,90,0) ) )
 	self:AddPassengerSeat( Vector(-30,0,18), Angle(0,-90,0) )

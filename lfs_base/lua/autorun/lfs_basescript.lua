@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 111 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 112)
+simfphys.LFS.VERSION = 112 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 112)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -520,7 +520,7 @@ if CLIENT then
 		
 		local Hide = me.SwitcherTime > Time
 		smHider = smHider + ((Hide and 1 or 0) - smHider) * FrameTime() * 15
-		local Alpha1 = 75 + 170 * smHider 
+		local Alpha1 = 135 + 110 * smHider 
 		local HiderOffset = 300 * smHider
 		local Offset = -50
 		local yPos = Y - (SeatCount + 1) * 30 - 10
@@ -529,9 +529,9 @@ if CLIENT then
 			local I = Pod:GetNWInt( "pPodIndex", -1 )
 			if I >= 0 then
 				if I == MySeat then
-					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(127,0,0,50 + 100 * smHider) )
+					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(127,0,0,100 + 50 * smHider) )
 				else
-					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,0,0,50 + 100 * smHider) )
+					draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,0,0,100 + 50 * smHider) )
 				end
 				if Hide then
 					if Passengers[I] then

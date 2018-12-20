@@ -339,7 +339,7 @@ function ENT:HandleEngine()
 			self:OnKeyThrottle( KeyThrottle )
 		end
 		
-		self.TargetRPM = math.Clamp( self.TargetRPM + RPMAdd,IdleRPM,KeyThrottle and LimitRPM or MaxRPM)
+		self.TargetRPM = math.Clamp( self.TargetRPM + RPMAdd,IdleRPM,(KeyThrottle and self:GetWepEnabled()) and LimitRPM or MaxRPM)
 	else
 		self.TargetRPM = self.TargetRPM - math.Clamp(self.TargetRPM,-250,250)
 	end
@@ -1277,6 +1277,14 @@ function ENT:PhysicsCollide( data, physobj )
 			self:EmitSound( "MetalVehicle.ImpactSoft" )
 		end
 	end
+end
+
+function ENT:DisableWep( bEnabled )
+	self.lfsWepDisabled = bEnabled
+end
+
+function ENT:GetWepEnabled()
+	return not self.lfsWepDisabled
 end
 
 function ENT:CreateAI()

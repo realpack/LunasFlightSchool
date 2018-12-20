@@ -24,6 +24,8 @@ ENT.ThrustEfficiencyHeli = 0.7
 ENT.RotorAngle = Angle(0,0,0)
 ENT.RotorRadius = 150
 
+ENT.DontPushMePlease = true
+
 function ENT:GetMaxTurnSpeedHeli()
 	return  {p = self.MaxTurnPitchHeli, y = self.MaxTurnYawHeli, r = self.MaxTurnRollHeli }
 end

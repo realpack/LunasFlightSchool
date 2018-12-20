@@ -80,6 +80,17 @@ function ENT:OnKeyThrottle( bPressed )
 	end
 end
 
+--[[
+function ENT:ApplyThrustVtol( PhysObj, vDirection, fForce )
+	PhysObj:ApplyForceOffset( vDirection * fForce,  self:GetElevatorPos() )
+	PhysObj:ApplyForceOffset( vDirection * fForce,  self:GetWingPos() )
+end
+
+function ENT:ApplyThrust( PhysObj, vDirection, fForce )
+	PhysObj:ApplyForceOffset( vDirection * fForce, self:GetRotorPos() )
+end
+]]--
+
 function ENT:OnEngineStarted()
 	--[[ play engine start sound? ]]--
 	self:EmitSound( "vehicles/airboat/fan_motor_start1.wav" )

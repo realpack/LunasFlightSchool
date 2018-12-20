@@ -89,10 +89,12 @@ if SERVER then
 							spawnedvehicle:SetAITEAM( self:GetTeamOverride() )
 						end
 						
-						local PhysObj = spawnedvehicle:GetPhysicsObject()
-						
-						if IsValid( PhysObj ) then
-							PhysObj:SetVelocityInstantaneous( self:GetRight() * 1000 )
+						if not spawnedvehicle.DontPushMePlease then
+							local PhysObj = spawnedvehicle:GetPhysicsObject()
+							
+							if IsValid( PhysObj ) then
+								PhysObj:SetVelocityInstantaneous( self:GetRight() * 1000 )
+							end
 						end
 						
 						table.insert( self.spawnedvehicles, spawnedvehicle )

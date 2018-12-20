@@ -1,0 +1,76 @@
+(shared)
+simfphys.LFS:PlanesGetAll()  -- gets all LFS planes
+simfphys.LFS.GetVersion() -- gets the current addon version
+
+Player:lfsGetPlane()  -- returns the LFSPLANE the player is sitting in
+Player:lfsGetAITeam()  -- gets the AI-team the player is in
+
+LFSPLANE:GetDriver()  -- returns the driver (entity)
+LFSPLANE:GetDriverSeat() -- returns the drivers pod (entity)
+LFSPLANE:GetGunner()  -- returns the gunner if defined (entity)
+LFSPLANE:GetGunnerSeat() -- returns the gunners pod if defined (entity)
+LFSPLANE:GetActive() -- returns true if the vehicle is active. Active does not mean that engine is running (bool)
+LFSPLANE:EngineActive() -- returns true if the engine is running (bool)
+
+LFSPLANE:GetAI() -- returns true when the vehicle has AI enabled (bool)
+
+LFSPLANE:GetHP() -- returns the amount of health (float)
+LFSPLANE:GetMaxHP() -- returns the maximum health (float)
+
+LFSPLANE:GetShield() -- returns the amount of shield (float)
+LFSPLANE:GetMaxShield() -- returns the maximum shield (float)
+
+LFSPLANE:GetAmmoPrimary() -- returns the primary ammo (int)
+LFSPLANE:GetAmmoSecondary() -- returns the secondary ammo (int)
+
+LFSPLANE:GetMaxAmmoPrimary() -- returns the maximum primary ammo (int)
+LFSPLANE:GetMaxAmmoSecondary() -- returns the maximum secondary ammo (int)
+
+LFSPLANE:GetRPM() -- returns the current engine rpm (float)
+
+LFSPLANE:GetIdleRPM() -- returns idle rpm (float)
+LFSPLANE:GetMaxRPM() -- returns rpm at 100% throttle (float)
+LFSPLANE:GetLimitRPM() -- returns max rpm (>100% throttle) (float)
+
+LFSPLANE:GetMaxThrust() -- returns max thrust power (float)
+LFSPLANE:GetThrustVtol() -- returns max thrust power in vtol mode (float)
+
+LFSPLANE:GetMaxVelocity()  -- returns max possible velocity at 0-degree climb (float)
+LFSPLANE:GetMaxPerfVelocity()  -- returns the speed in which the plane has its maximum turning potential (float)
+
+LFSPLANE:GetMaxTurnSpeed() -- returns a table   table.p = pitch   table.y = yaw   table.r = roll  
+
+LFSPLANE:GetRotorPos() -- returns the rotor pos as world-coordinate (vector)
+LFSPLANE:GetWingPos() -- returns the wing pos as world-coordinate (vector)
+LFSPLANE:GetElevatorPos() -- returns the elevator pos as world-coordinate (vector)
+LFSPLANE:GetRudderPos() -- returns the rudder pos as world-coordinate (vector)
+
+LFSPLANE:GetWingUp() -- returns the wing"up" direction (vector)
+LFSPLANE:GetElevatorUp() -- returns the elevator "up" direction (vector)
+LFSPLANE:GetRudderUp() -- returns the rudder "up" direction (vector)
+
+
+(server)
+Player:lfsSetAITeam( int ) - set players AI-team, valid teams are: 0 = FFA   1 = Bad Guys   2 = Good Guys
+
+LFSPLANE:IsDestroyed() -- returns true if the vehicle is destroyed
+
+LFSPLANE:PlayAnimation( string animation ) -- play an animation
+
+LFSPLANE:ToggleEngine()-- toggle engine
+LFSPLANE:StartEngine() -- start engine
+LFSPLANE:StopEngine() -- stop engine
+LFSPLANE:ToggleLandingGear() -- toggle landing gear
+
+LFSPLANE:SetHP( float ) -- set the health. Can not be higher than LFSPLANE:GetMaxHP()
+LFSPLANE:SetShield( float ) -- set the shield. Can not be higher than LFSPLANE:GetMaxShield()
+
+LFSPLANE:DisableWep( bool ) -- used in arc170 fighter to disable >100% throttle with active sfoils
+LFSPLANE:GetWepEnabled() -- returns true when >100% throttle is allowed
+
+LFSPLANE:SetAmmoPrimary( int ) -- set primary ammo. Can not be higher than LFSPLANE:GetMaxAmmoPrimary()
+LFSPLANE:SetAmmoSecondary( int ) -- set secondary ammo. Can not be higher than LFSPLANE:GetMaxAmmoSecondary()
+
+LFSPLANE:AddPassengerSeat( Pos, Ang ) -- adds an passenger seat. Pos and Ang is Local to the plane. Function returns the created Pod entity
+
+LFSPLANE:GetPassengerSeats() -- returns all passenger sears in a table
