@@ -138,6 +138,12 @@ function ENT:GetMaxThrust()
 	return self.MaxThrust
 end
 
+function ENT:GetThrustVtol()
+	self.MaxThrustVtol = isnumber( self.MaxThrustVtol ) and self.MaxThrustVtol or self:GetMaxThrust() * 0.15
+	
+	return self.MaxThrustVtol
+end
+
 function ENT:GetRotorPos()
 	return self:LocalToWorld( self.RotorPos )
 end

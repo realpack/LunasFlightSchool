@@ -63,6 +63,9 @@ ENT.MaxHealth = 450
 --ENT.Stability = 0.7   -- if you uncomment this the plane will always be able to turn at maximum performance. This causes MaxPerfVelocity to get ignored
 ENT.MaxStability = 0.7 -- lower this value if you encounter spazz. You can increase this up to 1 to aid turning performance at MaxPerfVelocity-speeds but be careful
 
+--ENT.VerticalTakeoff = true -- move vertically with landing gear out? REQUIRES ENT.Stability
+--ENT.MaxThrustVtol = 100 -- amount of vertical thrust
+
 ENT.MaxPrimaryAmmo = 100   -- set to a positive number if you want to use weapons. set to -1 if you dont
 ENT.MaxSecondaryAmmo = -1 -- set to a positive number if you want to use weapons. set to -1 if you dont
 

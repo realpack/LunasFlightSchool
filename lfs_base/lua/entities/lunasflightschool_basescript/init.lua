@@ -278,11 +278,9 @@ function ENT:CalcFlight()
 		PhysObj:ApplyForceCenter( self:GetRight() * self:WorldToLocal( self:GetPos() + self:GetVelocity() ).y * Mass * 0.01 )
 	end
     
-	local MaxAngle = 30
-    
-	self:SetRotPitch( (Pitch / MaxPitch) * MaxAngle )
-	self:SetRotYaw( (Yaw / MaxYaw) * MaxAngle )
-	self:SetRotRoll( (Roll / MaxRoll) * MaxAngle )
+	self:SetRotPitch( (Pitch / MaxPitch) * 30 )
+	self:SetRotYaw( (Yaw / MaxYaw) * 30 )
+	self:SetRotRoll( (Roll / MaxRoll) * 30 )
 end
 
 function ENT:HitGround()
@@ -356,7 +354,7 @@ function ENT:HandleEngine()
 	
 	if not isnumber( self.Stability ) and not self:GetAI() then fThrust = math.max( fThrust ,0 ) end
 	
-	local Force = fThrust / MaxVelocity * self:GetMaxThrust() * self:GetLimitRPM()
+	local Force = fThrust / MaxVelocity * self:GetMaxThrust() * self:GetLimitRPM() * FrameTime()
 	
 	if self:IsDestroyed() or not EngActive then
 		self:StopEngine()
@@ -364,7 +362,38 @@ function ENT:HandleEngine()
 		return
 	end
 	
-	PhysObj:ApplyForceOffset( self:GetForward() * Force * FrameTime(),  self:GetRotorPos() )
+	if self.VerticalTakeoff then
+		if isnumber( self.Stability ) then
+			local Driver = self:GetDriver()
+
+			if IsValid( Driver ) then 
+				local KeyThrottle = Driver:KeyDown( IN_FORWARD )
+				local KeyBrake = Driver:KeyDown( IN_BACK )
+
+				if not self.LandingGearUp then
+					self.TargetRPM = (self:GetVelocity():Length() / MaxVelocity) * LimitRPM
+					
+					local Up = KeyThrottle and self:GetThrustVtol() or 0
+					local Down = KeyBrake and -self:GetThrustVtol() or 0
+					
+					self:ApplyThrustVtol( PhysObj, self:GetUp(), (Up + Down) * PhysObj:GetMass() * FrameTime() )
+					
+					return
+				end
+			end
+		end
+	end
+	
+	self:ApplyThrust( PhysObj, self:GetForward(), Force )
+end
+
+function ENT:ApplyThrustVtol( PhysObj, vDirection, fForce )
+	PhysObj:ApplyForceOffset( vDirection * fForce,  self:GetElevatorPos() )
+	PhysObj:ApplyForceOffset( vDirection * fForce,  self:GetWingPos() )
+end
+
+function ENT:ApplyThrust( PhysObj, vDirection, fForce )
+	PhysObj:ApplyForceOffset( vDirection * fForce, self:GetRotorPos() )
 end
 
 function ENT:GetThrottleIncrement()

@@ -149,7 +149,7 @@ function ENT:AnimCabin()
 end
 
 function ENT:AnimLandingGear()
-	self.SMLG = self.SMLG and self.SMLG + (20 *  self:GetLGear() - self.SMLG) * FrameTime() * 1.2 or 0
+	self.SMLG = self.SMLG and self.SMLG + (20 *  self:GetLGear() - self.SMLG) * FrameTime() * 2 or 0
 	
 	local Ang = 20 - self.SMLG
 	self:ManipulateBoneAngles( 8, Angle(0,-Ang,0) )
