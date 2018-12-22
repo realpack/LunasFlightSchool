@@ -10,21 +10,6 @@ function ENT:RunOnSpawn()
 	end
 end
 
-function ENT:CreateAI()
-end
-
-function ENT:RemoveAI()
-end
-
-function ENT:ToggleLandingGear()
-end
-
-function ENT:RaiseLandingGear()
-end
-
-function ENT:HandleWeapons(Fire1, Fire2)
-end
-
 function ENT:OnEngineStarted()
 	self:EmitSound( "lfs/cessna/start.wav" )
 end
