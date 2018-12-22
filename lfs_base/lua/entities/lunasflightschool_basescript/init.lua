@@ -274,7 +274,7 @@ function ENT:CalcFlight()
 	
 	PhysObj:ApplyForceOffset( -self:GetRudderUp() * (math.Clamp(RudderVel,-MaxYaw,MaxYaw) + Yaw * Stability) *  Mass * Stability, self:GetRudderPos() )
     
-	if isnumber( self.Stability ) then
+	if self:IsSpaceShip() then
 		PhysObj:ApplyForceCenter( self:GetRight() * self:WorldToLocal( self:GetPos() + self:GetVelocity() ).y * Mass * 0.01 )
 	end
     
@@ -352,7 +352,7 @@ function ENT:HandleEngine()
 	
 	local fThrust = MaxVelocity * (self:GetRPM() / self:GetLimitRPM()) - self:GetForwardVelocity()
 	
-	if not isnumber( self.Stability ) and not self:GetAI() then fThrust = math.max( fThrust ,0 ) end
+	if not self:IsSpaceShip() and not self:GetAI() then fThrust = math.max( fThrust ,0 ) end
 	
 	local Force = fThrust / MaxVelocity * self:GetMaxThrust() * self:GetLimitRPM() * FrameTime()
 	
@@ -363,7 +363,7 @@ function ENT:HandleEngine()
 	end
 	
 	if self.VerticalTakeoff then
-		if isnumber( self.Stability ) then
+		if self:IsSpaceShip() then
 			local Driver = self:GetDriver()
 
 			if IsValid( Driver ) then 
@@ -397,7 +397,7 @@ function ENT:ApplyThrust( PhysObj, vDirection, fForce )
 end
 
 function ENT:GetThrottleIncrement()
-	self.RPMThrottleIncrement = isnumber( self.RPMThrottleIncrement ) and self.RPMThrottleIncrement or (isnumber( self.Stability ) and 2000 or 350)
+	self.RPMThrottleIncrement = isnumber( self.RPMThrottleIncrement ) and self.RPMThrottleIncrement or (self:IsSpaceShip() and 2000 or 350)
 	
 	return self.RPMThrottleIncrement
 end
