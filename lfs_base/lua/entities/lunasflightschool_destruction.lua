@@ -58,7 +58,7 @@ if SERVER then
 				ent:SetRenderMode( RENDERMODE_TRANSALPHA )
 				ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 				
-				PhysObj = ent:GetPhysicsObject()
+				local PhysObj = ent:GetPhysicsObject()
 				if IsValid( PhysObj ) then
 					PhysObj:SetVelocityInstantaneous( VectorRand() * 1000 )
 					PhysObj:AddAngleVelocity( VectorRand() * 500 ) 

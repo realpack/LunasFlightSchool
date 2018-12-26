@@ -459,8 +459,10 @@ function ENT:HandleActive()
 		
 		local PObj = self:GetPhysicsObject()
 		if IsValid( PObj ) then
-			PObj:SetMass( self.Mass ) -- !!!hack!!!
-			PObj:SetInertia( TargetInertia ) -- !!!hack!!!
+			if PObj:IsMotionEnabled() then -- only set when unfrozen
+				PObj:SetMass( self.Mass ) -- !!!hack!!!
+				PObj:SetInertia( TargetInertia ) -- !!!hack!!!
+			end
 		end
 	end
 end
