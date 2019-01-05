@@ -38,7 +38,7 @@ LFSPLANE:GetThrustVtol() -- returns max thrust power in vtol mode (float)
 LFSPLANE:GetMaxVelocity()  -- returns max possible velocity at 0-degree climb (float)
 LFSPLANE:GetMaxPerfVelocity()  -- returns the speed in which the plane has its maximum turning potential (float)
 
-LFSPLANE:GetMaxTurnSpeed() -- returns a table   table.p = pitch   table.y = yaw   table.r = roll  
+LFSPLANE:GetMaxTurnSpeed() -- returns max turning force as a table.   table.p = pitch   table.y = yaw   table.r = roll  
 
 LFSPLANE:GetRotorPos() -- returns the rotor pos as world-coordinate (vector)
 LFSPLANE:GetWingPos() -- returns the wing pos as world-coordinate (vector)
@@ -73,4 +73,4 @@ LFSPLANE:SetAmmoSecondary( int ) -- set secondary ammo. Can not be higher than L
 
 LFSPLANE:AddPassengerSeat( Pos, Ang ) -- adds an passenger seat. Pos and Ang is Local to the plane. Function returns the created Pod entity
 
-LFSPLANE:GetPassengerSeats() -- returns all passenger sears in a table
+LFSPLANE:GetPassengerSeats() -- returns all passenger seats as a table

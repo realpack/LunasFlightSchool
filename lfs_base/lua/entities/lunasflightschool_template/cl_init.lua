@@ -3,9 +3,8 @@
 
 include("shared.lua")
 
-function ENT:LFSCalcViewFirstPerson( view ) -- modify first person camera view here
+function ENT:LFSCalcViewFirstPerson( view, ply ) -- modify first person camera view here
 	--[[
-	local ply = LocalPlayer()
 	if ply == self:GetDriver() then
 		-- driver view
 	elseif ply == self:GetGunner() then
@@ -18,11 +17,14 @@ function ENT:LFSCalcViewFirstPerson( view ) -- modify first person camera view h
 	return view
 end
 
-function ENT:LFSCalcViewThirdPerson( view ) -- modify third person camera view here
+function ENT:LFSCalcViewThirdPerson( view, ply ) -- modify third person camera view here
 	return view
 end
 
-function ENT:LFSHudPaint( X, Y, data ) -- driver only
+function ENT:LFSHudPaint( X, Y, data, ply ) -- driver only
+end
+
+function ENT:LFSHudPaintPassenger( X, Y, ply ) -- all except driver
 end
 
 function ENT:CalcEngineSound( RPM, Pitch, Doppler )

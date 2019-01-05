@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 116 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
+simfphys.LFS.VERSION = 117 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -332,7 +332,7 @@ if CLIENT then
 			
 			view.drawviewer = false
 			
-			return Parent:LFSCalcViewFirstPerson( view )
+			return Parent:LFSCalcViewFirstPerson( view, ply )
 		end
 		
 		local radius = 550
@@ -360,13 +360,13 @@ if CLIENT then
 			view.origin = view.origin + tr.HitNormal * WallOffset
 		end
 
-		return Parent:LFSCalcViewThirdPerson( view )
+		return Parent:LFSCalcViewThirdPerson( view, ply )
 	end )
 
 	local function DrawCircle( X, Y, radius )
 		local segmentdist = 360 / ( 2 * math.pi * radius / 2 )
 		
-		for a = 0, 360 - segmentdist, segmentdist do
+		for a = 0, 360, segmentdist do
 			surface.DrawLine( X + math.cos( math.rad( a ) ) * radius, Y - math.sin( math.rad( a ) ) * radius, X + math.cos( math.rad( a + segmentdist ) ) * radius, Y - math.sin( math.rad( a + segmentdist ) ) * radius )
 			
 			surface.DrawLine( X + math.cos( math.rad( a ) ) * radius, Y - math.sin( math.rad( a ) ) * radius, X + math.cos( math.rad( a + segmentdist ) ) * radius, Y - math.sin( math.rad( a + segmentdist ) ) * radius )
@@ -464,7 +464,7 @@ if CLIENT then
 			draw.SimpleText( ent:GetAmmoSecondary(), "LFS_FONT", 120, 110, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 		end
 		
-		ent:LFSHudPaint( X, Y, {speed = speed, altitude = alt, PrimaryAmmo = AmmoPrimary, SecondaryAmmo = AmmoSecondary, Throttle = Throttle})
+		ent:LFSHudPaint( X, Y, {speed = speed, altitude = alt, PrimaryAmmo = AmmoPrimary, SecondaryAmmo = AmmoSecondary, Throttle = Throttle}, ply )
 	end
 	
 	local smHider = 0
@@ -628,7 +628,11 @@ if CLIENT then
 		
 		PaintSeatSwitcher( Parent, X, Y )
 		
-		if Parent:GetDriverSeat() ~= Pod then return end
+		if Parent:GetDriverSeat() ~= Pod then 
+			Parent:LFSHudPaintPassenger( X, Y, ply )
+			
+			return
+		end
 		
 		if HintPlayerAboutHisFuckingIncompetence then
 			if not Parent.ERRORSOUND then
@@ -684,18 +688,29 @@ if CLIENT then
 			
 			if not ply:KeyDown( IN_WALK ) or FailStart then
 				surface.DrawLine( HitPlane.x + Dir.x * 10, HitPlane.y + Dir.y * 10, HitPilot.x - Dir.x * 34, HitPilot.y- Dir.y * 34 )
+				
+				-- shadow
+				surface.SetDrawColor( 0, 0, 0, 50 )
+				surface.DrawLine( HitPlane.x + Dir.x * 10 + 1, HitPlane.y + Dir.y * 10 + 1, HitPilot.x - Dir.x * 34+ 1, HitPilot.y- Dir.y * 34 + 1 )
 			end
 		end
 		
 		surface.SetDrawColor( 255, 255, 255, 255 )
-		
 		DrawCircle( HitPlane.x, HitPlane.y, 10 )
 		surface.DrawLine( HitPlane.x + 10, HitPlane.y, HitPlane.x + 20, HitPlane.y ) 
 		surface.DrawLine( HitPlane.x - 10, HitPlane.y, HitPlane.x - 20, HitPlane.y ) 
 		surface.DrawLine( HitPlane.x, HitPlane.y + 10, HitPlane.x, HitPlane.y + 20 ) 
 		surface.DrawLine( HitPlane.x, HitPlane.y - 10, HitPlane.x, HitPlane.y - 20 ) 
-		
 		DrawCircle( HitPilot.x, HitPilot.y, 34 )
+		
+		-- shadow
+		surface.SetDrawColor( 0, 0, 0, 80 )
+		DrawCircle( HitPlane.x + 1, HitPlane.y + 1, 10 )
+		surface.DrawLine( HitPlane.x + 11, HitPlane.y + 1, HitPlane.x + 21, HitPlane.y + 1 ) 
+		surface.DrawLine( HitPlane.x - 9, HitPlane.y + 1, HitPlane.x - 16, HitPlane.y + 1 ) 
+		surface.DrawLine( HitPlane.x + 1, HitPlane.y + 11, HitPlane.x + 1, HitPlane.y + 21 ) 
+		surface.DrawLine( HitPlane.x + 1, HitPlane.y - 19, HitPlane.x + 1, HitPlane.y - 16 ) 
+		DrawCircle( HitPilot.x + 1, HitPilot.y + 1, 34 )
 	end )
 	
 	local Frame

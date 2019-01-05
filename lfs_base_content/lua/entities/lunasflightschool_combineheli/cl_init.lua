@@ -2,11 +2,11 @@
 
 include("shared.lua")
 
-function ENT:LFSCalcViewFirstPerson( view )
+function ENT:LFSCalcViewFirstPerson( view, ply )
 	return view
 end
 
-function ENT:LFSCalcViewThirdPerson( view )
+function ENT:LFSCalcViewThirdPerson( view, ply )
 	return view
 end
 

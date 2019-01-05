@@ -12,15 +12,18 @@ end
 function ENT:Initialize()
 end
 
-function ENT:LFSCalcViewFirstPerson( view )
+function ENT:LFSCalcViewFirstPerson( view, ply )
 	return view
 end
 
-function ENT:LFSCalcViewThirdPerson( view )
+function ENT:LFSCalcViewThirdPerson( view, ply )
 	return view
 end
 
-function ENT:LFSHudPaint( X, Y, data )
+function ENT:LFSHudPaint( X, Y, data, ply )
+end
+
+function ENT:LFSHudPaintPassenger( X, Y, ply )
 end
 
 function ENT:Think()
