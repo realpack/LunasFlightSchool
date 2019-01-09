@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 117 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
+simfphys.LFS.VERSION = 118 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -434,7 +434,7 @@ if CLIENT then
 		
 		local vel = ent:GetVelocity():Length()
 		
-		local Throttle = math.max( math.Round( ((ent:GetRPM() - ent:GetIdleRPM()) / (ent:GetMaxRPM() - ent:GetIdleRPM())) * 100, 0) ,0)
+		local Throttle = ent:GetThrottlePercent()
 		local Col = Throttle <= 100 and Color(255,255,255,255) or Color(255,0,0,255)
 		draw.SimpleText( "THR", "LFS_FONT", 10, 10, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 		draw.SimpleText( Throttle.."%" , "LFS_FONT", 120, 10, Col, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
@@ -793,7 +793,6 @@ if CLIENT then
 	end
 	
 	hook.Add( "EntityEmitSound", "!!!lfs_volumemanager", function( t )
-
 		if t.Entity.LFS then
 			t.Volume = t.Volume * cvarVolume:GetFloat()
 			return true

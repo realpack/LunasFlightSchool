@@ -101,6 +101,9 @@ function ENT:OnEngineStopped()
 	self:EmitSound( "vehicles/airboat/fan_motor_shut_off1.wav" )
 end
 
+function ENT:OnVtolMode( IsOn )
+end
+
 function ENT:OnLandingGearToggled( bOn )
 	self:EmitSound( "vehicles/tank_readyfire1.wav" )
 	

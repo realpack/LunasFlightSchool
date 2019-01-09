@@ -46,6 +46,10 @@ ENT.MaxHealth = 450
 
 ENT.Stability = 0.7
 
+ENT.VerticalTakeoff = true
+ENT.VtolAllowInputBelowThrottle = 10
+ENT.MaxThrustVtol = 10000
+
 ENT.MaxPrimaryAmmo = 1600
 ENT.MaxSecondaryAmmo = -1
 

@@ -46,6 +46,10 @@ ENT.MaxShield = 400
 
 ENT.Stability = 0.7
 
+ENT.VerticalTakeoff = true
+ENT.VtolAllowInputBelowThrottle = 10
+ENT.MaxThrustVtol = 10000
+
 ENT.MaxPrimaryAmmo = 400
 ENT.MaxSecondaryAmmo = 10
 

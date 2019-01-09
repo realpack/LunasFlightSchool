@@ -49,6 +49,7 @@ LFSPLANE:GetWingUp() -- returns the wing"up" direction (vector)
 LFSPLANE:GetElevatorUp() -- returns the elevator "up" direction (vector)
 LFSPLANE:GetRudderUp() -- returns the rudder "up" direction (vector)
 
+LFSPLANE:GetThrottlePercent() -- returns the percentage (%) of throttle as number
 
 (server)
 Player:lfsSetAITeam( int ) - set players AI-team, valid teams are: 0 = FFA   1 = Bad Guys   2 = Good Guys
@@ -74,3 +75,5 @@ LFSPLANE:SetAmmoSecondary( int ) -- set secondary ammo. Can not be higher than L
 LFSPLANE:AddPassengerSeat( Pos, Ang ) -- adds an passenger seat. Pos and Ang is Local to the plane. Function returns the created Pod entity
 
 LFSPLANE:GetPassengerSeats() -- returns all passenger seats as a table
+
+LFSPLANE:IsVtolModeActive() -- returns true when in vtol mode

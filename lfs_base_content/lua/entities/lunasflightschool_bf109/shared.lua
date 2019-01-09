@@ -28,7 +28,7 @@ ENT.WheelPos_L = Vector(78.12,55,15.16)
 ENT.WheelPos_R = Vector(78.12,-55,15.16)
 ENT.WheelPos_C = Vector(-146.61,0,76)
 
-ENT.IdleRPM = 300
+ENT.IdleRPM = 250
 ENT.MaxRPM = 1200
 ENT.LimitRPM = 1500
 

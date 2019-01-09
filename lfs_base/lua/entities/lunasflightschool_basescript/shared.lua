@@ -172,6 +172,13 @@ function ENT:GetRudderPos()
 	return self:LocalToWorld( self.RudderPos )
 end
 
+function ENT:GetThrottlePercent()
+	local IdleRPM = self:GetIdleRPM()
+	local MaxRPM = self:GetMaxRPM()
+	
+	return math.max( math.Round(((self:GetRPM() - IdleRPM) / (MaxRPM - IdleRPM)) * 100,0) ,0)
+end
+
 function ENT:GetPassengerSeats()
 	if not istable( self.pSeats ) then
 		self.pSeats = {}

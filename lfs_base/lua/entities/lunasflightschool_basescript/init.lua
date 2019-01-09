@@ -164,6 +164,8 @@ function ENT:CalcFlight()
 	local MaxYaw = MaxTurnSpeed.y
 	local MaxRoll = MaxTurnSpeed.r
 	
+	local IsInVtolMode =  self:IsVtolModeActive()
+	
 	local PhysObj = self:GetPhysicsObject()
 	if not IsValid( PhysObj ) then return end
 	
@@ -194,7 +196,7 @@ function ENT:CalcFlight()
 		
 		local LocalAngles = self:WorldToLocalAngles( EyeAngles )
 		
-		if Driver:KeyDown( IN_SPEED ) then
+		if Driver:KeyDown( IN_SPEED ) and not IsInVtolMode then
 			EyeAngles = self:GetAngles()
 			
 			self.StoredEyeAngles = Angle(EyeAngles.p,EyeAngles.y,0)
@@ -230,29 +232,18 @@ function ENT:CalcFlight()
 		end
 	end
 	
-	if IsValid( self.wheel_C_master ) then
-		if isvector( self.WheelPos_L ) and isvector( self.WheelPos_R ) and isvector( self.WheelPos_C ) then
-			local SteerMaster = self.wheel_C_master
-			local smPObj = SteerMaster:GetPhysicsObject()
-			
-			if IsValid( smPObj ) then
-				if smPObj:IsMotionEnabled() then
-					smPObj:EnableMotion( false )
-				end
-			end
-			
-			local Mirror = ((self.WheelPos_L.x + self.WheelPos_R.x) * 0.5 > self.WheelPos_C.x) and -1 or 1
-			
-			self.wheel_C_master:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(LocalAngYaw * Mirror,-45,45),0) ) )
-		end
-	end
-
-	local RollRate = math.min(self:GetVelocity():Length() / math.min(self:GetMaxVelocity() * 0.5,3000),1)
-	RudderFadeOut = math.max(RudderFadeOut,1 - RollRate)
+	self:SteerWheel( LocalAngYaw )
 	
 	local Stability = self:GetStability()
 
+	local RollRate =  math.min(self:GetVelocity():Length() / math.min(self:GetMaxVelocity() * 0.5,3000),1)
+	RudderFadeOut = math.max(RudderFadeOut,1 - RollRate)
+	
 	local ManualRoll = (D and MaxRoll or 0) - (A and MaxRoll or 0)
+	
+	if IsInVtolMode then
+		ManualRoll = math.Clamp(((D and 25 or 0) - (A and 25 or 0) - self:GetAngles().r) * 5, -MaxRoll, MaxRoll)
+	end
 	
 	local AutoRoll = (-LocalAngYaw * 22 * RollRate + LocalAngRoll * 3.5 * RudderFadeOut) * WingFinFadeOut
 	
@@ -281,6 +272,25 @@ function ENT:CalcFlight()
 	self:SetRotPitch( (Pitch / MaxPitch) * 30 )
 	self:SetRotYaw( (Yaw / MaxYaw) * 30 )
 	self:SetRotRoll( (Roll / MaxRoll) * 30 )
+end
+
+function ENT:SteerWheel( SteerAngle )
+	if IsValid( self.wheel_C_master ) then
+		if isvector( self.WheelPos_L ) and isvector( self.WheelPos_R ) and isvector( self.WheelPos_C ) then
+			local SteerMaster = self.wheel_C_master
+			local smPObj = SteerMaster:GetPhysicsObject()
+			
+			if IsValid( smPObj ) then
+				if smPObj:IsMotionEnabled() then
+					smPObj:EnableMotion( false )
+				end
+			end
+			
+			local Mirror = ((self.WheelPos_L.x + self.WheelPos_R.x) * 0.5 > self.WheelPos_C.x) and -1 or 1
+			
+			self.wheel_C_master:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(SteerAngle * Mirror,-45,45),0) ) )
+		end
+	end
 end
 
 function ENT:HitGround()
@@ -367,18 +377,40 @@ function ENT:HandleEngine()
 			local Driver = self:GetDriver()
 
 			if IsValid( Driver ) then 
-				local KeyThrottle = Driver:KeyDown( IN_FORWARD )
-				local KeyBrake = Driver:KeyDown( IN_BACK )
-
-				if not self.LandingGearUp then
-					self.TargetRPM = (self:GetVelocity():Length() / MaxVelocity) * LimitRPM
+				local IsVtolActive = self:IsVtolModeActive()
+				
+				if self.oldVtolMode ~= IsVtolActive then
+					self.oldVtolMode = IsVtolActive
+					self:OnVtolMode( IsVtolActive )
 					
-					local Up = KeyThrottle and self:GetThrustVtol() or 0
-					local Down = KeyBrake and -self:GetThrustVtol() or 0
-					
-					self:ApplyThrustVtol( PhysObj, self:GetUp(), (Up + Down) * PhysObj:GetMass() * FrameTime() )
-					
-					return
+					self.smfForce = 0
+				end
+				
+				if IsVtolActive then
+					if isnumber( self.VtolAllowInputBelowThrottle ) then
+						local KeyThrottle = Driver:KeyDown( IN_SPEED )
+						local KeyBrake = Driver:KeyDown( IN_BACK )
+			
+						local Up = KeyThrottle and self:GetThrustVtol() or 0
+						local Down = KeyBrake and -self:GetThrustVtol() or 0
+						
+						local VtolForce = (Up + Down) * PhysObj:GetMass() * FrameTime() 
+						
+						self.smfForce = isnumber( self.smfForce ) and (self.smfForce + (VtolForce - self.smfForce) * FrameTime() * 2) or VtolForce
+						self:ApplyThrustVtol( PhysObj, self:GetUp(), self.smfForce )
+					else
+						self.TargetRPM = (self:GetVelocity():Length() / MaxVelocity) * LimitRPM
+						
+						local Up = Driver:KeyDown( IN_FORWARD ) and self:GetThrustVtol() or 0
+						local Down = Driver:KeyDown( IN_BACK ) and -self:GetThrustVtol() or 0
+						
+						local VtolForce = (Up + Down) * PhysObj:GetMass() * FrameTime() 
+						
+						self.smfForce = isnumber( self.smfForce ) and (self.smfForce + (VtolForce - self.smfForce) * FrameTime() * 2) or VtolForce
+						self:ApplyThrustVtol( PhysObj, self:GetUp(), self.smfForce )
+						
+						return
+					end
 				end
 			end
 		end
@@ -387,9 +419,22 @@ function ENT:HandleEngine()
 	self:ApplyThrust( PhysObj, self:GetForward(), Force )
 end
 
+function ENT:IsVtolModeActive()
+	if not self.VerticalTakeoff then return false end
+	
+	if isnumber( self.VtolAllowInputBelowThrottle ) then
+		return self.VtolAllowInputBelowThrottle > self:GetThrottlePercent()
+	else
+		return not self.LandingGearUp
+	end
+end
+
+function ENT:OnVtolMode( IsOn )
+end
+
 function ENT:ApplyThrustVtol( PhysObj, vDirection, fForce )
-	PhysObj:ApplyForceOffset( vDirection * fForce,  self:GetElevatorPos() )
-	PhysObj:ApplyForceOffset( vDirection * fForce,  self:GetWingPos() )
+	PhysObj:ApplyForceOffset( vDirection * self.smfForce,  self:GetElevatorPos() )
+	PhysObj:ApplyForceOffset( vDirection * self.smfForce,  self:GetWingPos() )
 end
 
 function ENT:ApplyThrust( PhysObj, vDirection, fForce )
@@ -585,6 +630,14 @@ end
 function ENT:RaiseLandingGear()
 	if not self.LandingGearUp then
 		self.LandingGearUp = true
+		
+		self:OnLandingGearToggled( self.LandingGearUp )
+	end
+end
+
+function ENT:DeployLandingGear()
+	if self.LandingGearUp then
+		self.LandingGearUp = false
 		
 		self:OnLandingGearToggled( self.LandingGearUp )
 	end
@@ -1264,8 +1317,6 @@ function ENT:PhysicsCollide( data, physobj )
 	
 	if IsValid( data.HitEntity ) then
 		if data.HitEntity:IsPlayer() or data.HitEntity:IsNPC() then
-			self:EmitSound( "MetalVehicle.ImpactSoft" )
-			
 			return
 		end
 	end
