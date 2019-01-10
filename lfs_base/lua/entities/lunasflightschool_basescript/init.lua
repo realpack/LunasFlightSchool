@@ -394,7 +394,7 @@ function ENT:HandleEngine()
 				if IsVtolActive then
 					if isnumber( self.VtolAllowInputBelowThrottle ) then
 						local KeyThrottle = Driver:KeyDown( IN_SPEED )
-						local KeyBrake = Driver:KeyDown( IN_BACK )
+						local KeyBrake = Driver:KeyDown( IN_BACK ) and self:GetThrottlePercent() <= 10
 			
 						local Up = KeyThrottle and self:GetThrustVtol() or 0
 						local Down = KeyBrake and -self:GetThrustVtol() or 0
