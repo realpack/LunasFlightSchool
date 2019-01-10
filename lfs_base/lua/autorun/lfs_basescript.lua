@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 119 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
+simfphys.LFS.VERSION = 121 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -287,6 +287,10 @@ if SERVER then
 			local traceto = util.TraceLine( {start = Center,endpos = check4,filter = Filter2} )
 			local HitWall = tr.Hit or traceto.hit
 			local exitpoint = (HitWall == true or util.IsInWorld( check4 ) == false) and b_ent:LocalToWorld( Vector(0,0,0) ) or check4
+			
+			if isvector( ent.ExitPos ) then
+				exitpoint = b_ent:LocalToWorld( ent.ExitPos )
+			end
 			
 			if util.IsInWorld( exitpoint ) then
 				ply:SetPos(exitpoint)

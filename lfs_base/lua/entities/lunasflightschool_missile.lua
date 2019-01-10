@@ -7,6 +7,7 @@ ENT.Type            = "anim"
 function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",0, "Disabled" )
 	self:NetworkVar( "Bool",1, "CleanMissile" )
+	self:NetworkVar( "Bool",2, "DirtyMissile" )
 	self:NetworkVar( "Entity",0, "Attacker" )
 	self:NetworkVar( "Entity",1, "Inflictor" )
 	self:NetworkVar( "Entity",2, "LockOn" )
@@ -38,8 +39,8 @@ if SERVER then
 	end
 	
 	function ENT:FollowTarget( followent )
-		local speed = (self:GetStartVelocity() + 3000)
-		local turnrate = self:GetCleanMissile() and 55 or 45
+		local speed = self:GetStartVelocity() + (self:GetDirtyMissile() and 5000 or 3000)
+		local turnrate = self:GetDirtyMissile() and 100 or (self:GetCleanMissile() and 55 or 45)
 		
 		local TargetPos = followent:LocalToWorld( followent:OBBCenter() )
 		
@@ -184,6 +185,7 @@ else
 		local b = 0
 		
 		render.SetMaterial( mat )
+		
 		if self:GetCleanMissile() then
 			r = 0
 			g = 127
@@ -193,6 +195,11 @@ else
 				local Size = (10 - i) * 25.6
 				render.DrawSprite( pos - self:GetForward() * i * 5, Size, Size, Color( r, g, b, 255 ) )
 			end
+			
+		elseif self:GetDirtyMissile() then
+			r = 225
+			g = 40
+			b = 100
 		end
 		
 		render.DrawSprite( pos, 256, 256, Color( r, g, b, 255 ) )
@@ -266,35 +273,79 @@ else
 		local emitter = self.Emitter
 		if not emitter then return end
 	
-		if not self:GetCleanMissile() then
+		if self:GetDirtyMissile() then
 			local particle = emitter:Add( self.Materials[math.random(1, table.Count(self.Materials) )], pos )
-			
 			if particle then
 				particle:SetGravity( Vector(0,0,100) + VectorRand() * 50 ) 
 				particle:SetVelocity( -self:GetForward() * 500  )
 				particle:SetAirResistance( 600 ) 
-				particle:SetDieTime( math.Rand(4,6) )
-				particle:SetStartAlpha( 150 )
-				particle:SetStartSize( math.Rand(6,12) )
-				particle:SetEndSize( math.Rand(40,90) )
+				particle:SetDieTime( math.Rand(2,3) )
+				particle:SetStartAlpha( 100 )
+				particle:SetStartSize( math.Rand(10,13) )
+				particle:SetEndSize( math.Rand(25,60) )
 				particle:SetRoll( math.Rand( -1, 1 ) )
 				particle:SetColor( 50,50,50 )
 				particle:SetCollide( false )
 			end
-		end
-		
-		local particle = emitter:Add( "particles/flamelet"..math.random(1,5), pos )
-		if particle then
-			particle:SetVelocity( -self:GetForward() * 300 + self:GetVelocity())
-			particle:SetDieTime( 0.1 )
-			particle:SetAirResistance( 0 ) 
-			particle:SetStartAlpha( 255 )
-			particle:SetStartSize( 4 )
-			particle:SetEndSize( 0 )
-			particle:SetRoll( math.Rand(-1,1) )
-			particle:SetColor( 255,255,255 )
-			particle:SetGravity( Vector( 0, 0, 0 ) )
-			particle:SetCollide( false )
+
+			local particle = emitter:Add( "particles/flamelet"..math.random(1,5), pos )
+			if particle then
+				particle:SetVelocity( -self:GetForward() * math.Rand(500,1600) + self:GetVelocity())
+				particle:SetDieTime( math.Rand(0.2,0.4) )
+				particle:SetAirResistance( 0 ) 
+				particle:SetStartAlpha( 255 )
+				particle:SetStartSize( math.Rand(20,30) )
+				particle:SetEndSize( 10 )
+				particle:SetRoll( math.Rand(-1,1) )
+				particle:SetColor( 150,50,100 )
+				particle:SetGravity( Vector( 0, 0, 0 ) )
+				particle:SetCollide( false )
+			end
+			
+			local particle = emitter:Add( "particles/flamelet"..math.random(1,5), self:GetPos() )
+			if particle then
+				particle:SetVelocity( -self:GetForward() * 500 + VectorRand() * 50 )
+				particle:SetDieTime( 0.25 )
+				particle:SetAirResistance( 600 ) 
+				particle:SetStartAlpha( 255 )
+				particle:SetStartSize( math.Rand(13,20) )
+				particle:SetEndSize( math.Rand(5,7) )
+				particle:SetRoll( math.Rand(-1,1) )
+				particle:SetColor( 255,100,200 )
+				particle:SetGravity( Vector( 0, 0, 0 ) )
+				particle:SetCollide( false )
+			end
+		else
+			if not self:GetCleanMissile() then
+				local particle = emitter:Add( self.Materials[math.random(1, table.Count(self.Materials) )], pos )
+				
+				if particle then
+					particle:SetGravity( Vector(0,0,100) + VectorRand() * 50 ) 
+					particle:SetVelocity( -self:GetForward() * 500  )
+					particle:SetAirResistance( 600 ) 
+					particle:SetDieTime( math.Rand(4,6) )
+					particle:SetStartAlpha( 150 )
+					particle:SetStartSize( math.Rand(6,12) )
+					particle:SetEndSize( math.Rand(40,90) )
+					particle:SetRoll( math.Rand( -1, 1 ) )
+					particle:SetColor( 50,50,50 )
+					particle:SetCollide( false )
+				end
+			end
+			
+			local particle = emitter:Add( "particles/flamelet"..math.random(1,5), pos )
+			if particle then
+				particle:SetVelocity( -self:GetForward() * 300 + self:GetVelocity())
+				particle:SetDieTime( 0.1 )
+				particle:SetAirResistance( 0 ) 
+				particle:SetStartAlpha( 255 )
+				particle:SetStartSize( 4 )
+				particle:SetEndSize( 0 )
+				particle:SetRoll( math.Rand(-1,1) )
+				particle:SetColor( 255,255,255 )
+				particle:SetGravity( Vector( 0, 0, 0 ) )
+				particle:SetCollide( false )
+			end
 		end
 	end
 
@@ -317,6 +368,14 @@ else
 	end
 
 	function ENT:Explosion( pos )
+		if self:GetDirtyMissile() then
+			local effectdata = EffectData()
+				effectdata:SetOrigin( pos )
+			util.Effect( "lfs_explosion", effectdata )
+			
+			return
+		end
+		
 		local emitter = self.Emitter
 		if not emitter then return end
 		

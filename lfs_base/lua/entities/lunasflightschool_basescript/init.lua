@@ -419,6 +419,9 @@ function ENT:HandleEngine()
 	self:ApplyThrust( PhysObj, self:GetForward(), Force )
 end
 
+function ENT:OnVtolMode( On )
+end
+
 function ENT:IsVtolModeActive()
 	if not self.VerticalTakeoff then return false end
 	
@@ -427,9 +430,6 @@ function ENT:IsVtolModeActive()
 	else
 		return not self.LandingGearUp
 	end
-end
-
-function ENT:OnVtolMode( IsOn )
 end
 
 function ENT:ApplyThrustVtol( PhysObj, vDirection, fForce )
