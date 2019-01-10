@@ -84,8 +84,7 @@ function ENT:SetupDataTables()
 		self:SetAITEAM( self.AITEAM )
 		self:SetHP( self.MaxHealth )
 		self:SetShield( self.MaxShield )
-		self:SetAmmoPrimary( self:GetMaxAmmoPrimary() )
-		self:SetAmmoSecondary( self:GetMaxAmmoSecondary() )
+		self:OnReloadWeapon()
 	end
 	
 	self:AddDataTables()

@@ -108,6 +108,11 @@ function ENT:SecondaryAttack()
 	self:TakeSecondaryAmmo()
 end
 
+function ENT:OnReloadWeapon()
+	self:SetAmmoPrimary( self:GetMaxAmmoPrimary() )
+	self:SetAmmoSecondary( self:GetMaxAmmoSecondary() )
+end
+
 function ENT:HandleWeapons(Fire1, Fire2)
 	local Driver = self:GetDriver()
 	
