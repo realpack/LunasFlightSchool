@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 118 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
+simfphys.LFS.VERSION = 119 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -792,10 +792,29 @@ if CLIENT then
 		end
 	end
 	
+	local LFSSoundList = {}
 	hook.Add( "EntityEmitSound", "!!!lfs_volumemanager", function( t )
 		if t.Entity.LFS then
-			t.Volume = t.Volume * cvarVolume:GetFloat()
-			return true
+			local SoundFile = t.SoundName
+			
+			if LFSSoundList[ SoundFile ] == true then
+				t.Volume = t.Volume * cvarVolume:GetFloat()
+				return true
+				
+			elseif LFSSoundList[ SoundFile ] == false then
+				return false
+				
+			else
+				local File = string.Replace( SoundFile, "^", "" )
+
+				local Exists = file.Exists( "sound/"..File , "GAME" )
+				
+				LFSSoundList[ SoundFile ] = Exists
+				
+				if not Exists then
+					print("[LFS] '"..SoundFile.."' not found. Soundfile will not be played and is filtered for this game session to avoid fps issues.")
+				end
+			end
 		end
 	end )
 
