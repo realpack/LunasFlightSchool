@@ -1,16 +1,16 @@
 --DO NOT EDIT OR REUPLOAD THIS FILE
 
-local cVar = GetConVar( "ai_ignoreplayers" )
+local cVar_playerignore = GetConVar( "ai_ignoreplayers" )
 local meta = FindMetaTable( "Player" )
 
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 122 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
+simfphys.LFS.VERSION = 123 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 124)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
-simfphys.LFS.IgnorePlayers = cVar and cVar:GetBool() or false
+simfphys.LFS.IgnorePlayers = cVar_playerignore and cVar_playerignore:GetBool() or false
 
 simfphys.LFS.FreezeTeams = CreateConVar( "lfs_freeze_teams", "0", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"enable/disable auto ai-team switching" )
 simfphys.LFS.PlayerDefaultTeam = CreateConVar( "lfs_default_teams", "0", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"set default player ai-team" )
@@ -40,6 +40,52 @@ simfphys.LFS.pSwitchKeysInv = {
 	[9] = KEY_9,
 	[10] = KEY_0,
 }
+
+simfphys.LFS.NotificationVoices = {
+	["RANDOM"] = "0",
+	["LFSORIGINAL"] = "1",
+	["Charles"] = "2",
+	["Grace"] = "3",
+	["Darren"] = "4",
+	["Susan"] = "5",
+	["Graham"] = "6",
+	["Peter"] = "7",
+	["Rachel"] = "8",
+	["Gabriel"] = "9",
+	["Gabriella"] = "10",
+	["Rod"] = "11",
+	["Mike"] = "12",
+	["Sharon"] = "13",
+	["Tim"] = "14",
+	["Ryan"] = "15",
+	["Tracy"] = "16",
+	["Amanda"] = "17",
+	["Selene"] = "18",
+	["Audrey"] = "19",
+}
+
+function simfphys.LFS.CheckUpdates()
+	http.Fetch("https://github.com/Blu-x92/LunasFlightSchool", function(contents,size) 
+		local LatestVersion = tonumber( string.match( contents, "%s*(%d+)\n%s*</span>\n%s*commits" ) ) or 0  -- i took this from acf. I hope they don't mind
+		
+		if simfphys.LFS.GetVersion() >= LatestVersion then
+			print("[LFS] is up to date, Version: "..simfphys.LFS.GetVersion())
+		else
+			print("[LFS] a newer version is available! Version: "..LatestVersion..", You have Version: "..simfphys.LFS.GetVersion())
+			print("[LFS] get the latest version at https://github.com/Blu-x92/LunasFlightSchool")
+			
+			if CLIENT then 
+				timer.Simple(18, function() 
+					chat.AddText( Color( 255, 0, 0 ), "[LFS] a newer version is available!" )
+					surface.PlaySound( "lfs/notification/ding.ogg" )
+					timer.Simple(0.5, function() 
+						simfphys.LFS.PlayNotificationSound()
+					end )
+				end)
+			end
+		end
+	end)
+end
 
 function simfphys.LFS.GetVersion()
 	return simfphys.LFS.VERSION
@@ -303,10 +349,22 @@ end
 if CLIENT then
 	local cvarVolume = CreateClientConVar( "lfs_volume", 1, true, false)
 	local cvarCamFocus = CreateClientConVar( "lfs_camerafocus", 0, true, false)
-	
+	local cvarShowPlaneIdent = CreateClientConVar( "lfs_show_identifier", 1, true, false)
+	local cvarNotificationVoice = CreateClientConVar( "lfs_notification_voice", "RANDOM", true, false)
+	local ShowPlaneIdent = cvarShowPlaneIdent and cvarShowPlaneIdent:GetBool() or true
+
+	function simfphys.LFS.PlayNotificationSound()
+		local soundfile = simfphys.LFS.NotificationVoices[GetConVar( "lfs_notification_voice" ):GetString()]
+
+		if soundfile == "0" or not soundfile then
+			surface.PlaySound( "lfs/notification/"..math.random(1,19)..".ogg" )
+		else
+			surface.PlaySound( "lfs/notification/"..soundfile..".ogg" )
+		end
+	end
+
 	local HintPlayerAboutHisFuckingIncompetence = true
 	local smTran = 0
-
 	hook.Add( "CalcView", "!!!!LFS_calcview", function(ply, pos, angles, fov)
 		HintPlayerAboutHisFuckingIncompetence = false
 	 
@@ -559,6 +617,8 @@ if CLIENT then
 	local NextFind = 0
 	local AllPlanes = {}
 	local function PaintPlaneIdentifier( ent )
+		if not ShowPlaneIdent then return end
+		
 		if NextFind < CurTime() then
 			NextFind = CurTime() + 3
 			AllPlanes = simfphys.LFS:PlanesGetAll()
@@ -579,16 +639,19 @@ if CLIENT then
 						if Dist < 13000 then
 							local Alpha = math.max(255 - Dist * 0.015,0)
 							local Team = v:GetAITEAM()
-							if Team ~= MyTeam or Team == 0 then
-								surface.SetDrawColor( 255, 0, 0, Alpha )
+							
+							if Team == 0 then
+								surface.SetDrawColor( 255, 150, 0, Alpha )
 							else
-								surface.SetDrawColor( 0, 127, 255, Alpha )
+								if Team ~= MyTeam then
+									surface.SetDrawColor( 255, 0, 0, Alpha )
+								else
+									surface.SetDrawColor( 0, 127, 255, Alpha )
+								end
 							end
 							
 							surface.DrawLine( Pos.x - Size, Pos.y + Size, Pos.x + Size, Pos.y + Size )
-							
 							surface.DrawLine( Pos.x - Size, Pos.y - Size, Pos.x - Size, Pos.y + Size )
-							
 							surface.DrawLine( Pos.x + Size, Pos.y - Size, Pos.x + Size, Pos.y + Size )
 							surface.DrawLine( Pos.x - Size, Pos.y - Size, Pos.x + Size, Pos.y - Size )
 						end
@@ -719,36 +782,30 @@ if CLIENT then
 	
 	local Frame
 	local bgMat = Material( "lfs_controlpanel_bg.png" )
-	local function OpenMenu()
-		if not IsValid( Frame ) then
-			Frame = vgui.Create( "DFrame" )
-			Frame:SetSize( 400, 200 )
-			Frame:SetTitle( "" )
-			Frame:SetDraggable( true )
-			Frame:MakePopup()
-			Frame:Center()
-			Frame.Paint = function(self, w, h )
-				draw.RoundedBox( 8, 0, 0, w, h, Color( 0, 0, 0, 255 ) )
-				draw.RoundedBox( 8, 1, 26, w-2, h-27, Color( 120, 120, 120, 255 ) )
-				draw.RoundedBox( 8, 0, 0, w, 25, Color( 127, 0, 0, 255 ) )
-				draw.SimpleText( "[LFS] Planes - Control Panel ", "LFS_FONT", 5, 11, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
-				
-				surface.SetDrawColor( 255, 255, 255, 50 )
-				surface.SetMaterial( bgMat )
-				surface.DrawTexturedRect( 0, -50, w, w )
-				
-				draw.DrawText( "( -1 = Focus Mouse   1 = Focus Plane )", "LFS_FONT_PANEL", 20, 95, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
-				
-				if LocalPlayer():IsSuperAdmin() then
-					draw.DrawText( "( This will only affect new connected Players )", "LFS_FONT_PANEL", 20, 135, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
-				end
-				
-				draw.DrawText( "v"..simfphys.LFS.GetVersion()..".GIT", "LFS_FONT_PANEL", w - 15, h - 20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM )
-				
+	local adminMat = Material( "icon16/shield.png" )
+	local soundPreviewMat = Material( "materials/icon16/sound.png" )
+	
+	local IsClientSelected = true
+	
+	local function OpenClientSettings( Frame )
+		IsClientSelected = true
+		
+		if IsValid( Frame.SV_PANEL ) then
+			Frame.SV_PANEL:Remove()
+		end
+		
+		if not IsValid( Frame.CL_PANEL ) then
+			local DPanel = vgui.Create( "DPanel", Frame )
+			DPanel:SetPos( 0, 45 )
+			DPanel:SetSize( 400, 175 )
+			DPanel.Paint = function(self, w, h ) 
+				draw.DrawText( "( -1 = Focus Mouse   1 = Focus Plane )", "LFS_FONT_PANEL", 20, 65, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+				draw.DrawText( "Update Notification Voice", "LFS_FONT_PANEL", 20, 105, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 			end
+			Frame.CL_PANEL = DPanel
 			
-			local slider = vgui.Create( "DNumSlider", Frame)
-			slider:SetPos( 20, 40 )
+			local slider = vgui.Create( "DNumSlider", DPanel )
+			slider:SetPos( 20, 10 )
 			slider:SetSize( 300, 20 )
 			slider:SetText( "Engine Volume" )
 			slider:SetMin( 0 )
@@ -756,8 +813,8 @@ if CLIENT then
 			slider:SetDecimals( 2 )
 			slider:SetConVar( "lfs_volume" )
 			
-			local slider = vgui.Create( "DNumSlider", Frame)
-			slider:SetPos( 20, 80 )
+			local slider = vgui.Create( "DNumSlider", DPanel )
+			slider:SetPos( 20, 50 )
 			slider:SetSize( 300, 20 )
 			slider:SetText( "Camera Focus" )
 			slider:SetMin( -1 )
@@ -765,33 +822,144 @@ if CLIENT then
 			slider:SetDecimals( 2 )
 			slider:SetConVar( "lfs_camerafocus" )
 			
-			if LocalPlayer():IsSuperAdmin() then
-				local slider = vgui.Create( "DNumSlider", Frame)
-				slider:SetPos( 20, 120 )
-				slider:SetSize( 300, 20 )
-				slider:SetText( "Player Default AI-Team" )
-				slider:SetMin( 0 )
-				slider:SetMax( 2 )
-				slider:SetDecimals( 0 )
-				slider:SetConVar( "lfs_default_teams" )
-				function slider:OnValueChanged( val )
-					net.Start("lfs_admin_setconvar")
-						net.WriteString("lfs_default_teams")
-						net.WriteString( tostring( val ) )
-					net.SendToServer()
-				end
+			local CheckBox = vgui.Create( "DCheckBoxLabel", DPanel )
+			CheckBox:SetText( "Show Plane Identifier" )
+			CheckBox:SetConVar("lfs_show_identifier") 
+			CheckBox:SizeToContents()
+			CheckBox:SetPos( 20, 140 )
+			
+			local DComboBox = vgui.Create( "DComboBox", DPanel )
+			DComboBox:SetPos( 150, 105 )
+			DComboBox:SetSize( 100, 20 )
+			for voicename, _ in pairs( simfphys.LFS.NotificationVoices ) do DComboBox:AddChoice( voicename ) end
+			DComboBox:SetValue( cvarNotificationVoice:GetString() )
+			DComboBox.OnSelect = function( self, index, value )
+				cvarNotificationVoice:SetString( value ) 
+			end
+			
+			local DermaButton = vgui.Create( "DButton", DPanel )
+			DermaButton:SetText( "" )
+			DermaButton:SetPos( 260, 106 )
+			DermaButton:SetSize( 16, 16 )
+			DermaButton.DoClick = function() simfphys.LFS.PlayNotificationSound() end
+			DermaButton.Paint = function(self, w, h ) 
+				surface.SetMaterial( soundPreviewMat )
+				surface.DrawTexturedRect( 0, 0, w, h ) 
+			end
+			
+		end
+	end
+	
+	local function OpenServerSettings( Frame )
+		IsClientSelected = false
+		
+		if IsValid( Frame.CL_PANEL ) then
+			Frame.CL_PANEL:Remove()
+		end
+		
+		if not IsValid( Frame.SV_PANEL ) then
+			local DPanel = vgui.Create( "DPanel", Frame )
+			DPanel:SetPos( 0, 45 )
+			DPanel:SetSize( 400, 175 )
+			DPanel.Paint = function(self, w, h )
+				draw.DrawText( "( This will only affect new connected Players )", "LFS_FONT_PANEL", 20, 25, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+			end
+			Frame.SV_PANEL = DPanel
+		
+			local slider = vgui.Create( "DNumSlider", DPanel )
+			slider:SetPos( 20, 10 )
+			slider:SetSize( 300, 20 )
+			slider:SetText( "Player Default AI-Team" )
+			slider:SetMin( 0 )
+			slider:SetMax( 2 )
+			slider:SetDecimals( 0 )
+			slider:SetConVar( "lfs_default_teams" )
+			function slider:OnValueChanged( val )
+				net.Start("lfs_admin_setconvar")
+					net.WriteString("lfs_default_teams")
+					net.WriteString( tostring( val ) )
+				net.SendToServer()
+			end
+			
+			local CheckBox = vgui.Create( "DCheckBoxLabel", DPanel )
+			CheckBox:SetPos( 20, 65 )
+			CheckBox:SetText( "Freeze Player AI-Team" )
+			CheckBox:SetValue( GetConVar( "lfs_freeze_teams" ):GetInt() )
+			CheckBox:SizeToContents()
+			function CheckBox:OnChange( val )
+				net.Start("lfs_admin_setconvar")
+					net.WriteString("lfs_freeze_teams")
+					net.WriteString( tostring( val and 1 or 0 ) )
+				net.SendToServer()
+			end
+		end
+	end
+	
+	local function OpenMenu()
+		if not IsValid( Frame ) then
+			Frame = vgui.Create( "DFrame" )
+			Frame:SetSize( 400, 220 )
+			Frame:SetTitle( "" )
+			Frame:SetDraggable( true )
+			Frame:MakePopup()
+			Frame:Center()
+			Frame.Paint = function(self, w, h )
+				draw.RoundedBox( 8, 0, 0, w, h, Color( 0, 0, 0, 255 ) )
+				draw.RoundedBox( 8, 1, 46, w-2, h-47, Color( 120, 120, 120, 255 ) )
 				
-				local CheckBox = vgui.Create( "DCheckBoxLabel", Frame)
-				CheckBox:SetPos( 20, 160 )
-				CheckBox:SetText( "Freeze Player AI-Team" )
-				CheckBox:SetValue( GetConVar( "lfs_freeze_teams" ):GetInt() )
-				CheckBox:SizeToContents()
-				function CheckBox:OnChange( val )
-					net.Start("lfs_admin_setconvar")
-						net.WriteString("lfs_freeze_teams")
-						net.WriteString( tostring( val and 1 or 0 ) )
-					net.SendToServer()
+				local ColorSelected = Color( 120, 120, 120, 255 )
+				
+				local Col_C = IsClientSelected and Color( 120, 120, 120, 255 ) or Color( 80, 80, 80, 255 )
+				local Col_S = IsClientSelected and Color( 80, 80, 80, 255 ) or Color( 120, 120, 120, 255 )
+				
+				draw.RoundedBox( 4, 1, 26, 199, IsClientSelected and 36 or 19, Col_C )
+				draw.RoundedBox( 4, 201, 26, 198, IsClientSelected and 19 or 36, Col_S )
+				
+				draw.RoundedBox( 8, 0, 0, w, 25, Color( 127, 0, 0, 255 ) )
+				draw.SimpleText( "[LFS] Planes - Control Panel ", "LFS_FONT", 5, 11, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+				
+				surface.SetDrawColor( 255, 255, 255, 50 )
+				surface.SetMaterial( bgMat )
+				surface.DrawTexturedRect( 0, -50, w, w )
+				
+				draw.DrawText( "v"..simfphys.LFS.GetVersion()..".GIT", "LFS_FONT_PANEL", w - 15, h - 20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM )
+			end
+			OpenClientSettings( Frame )
+			
+			local DermaButton = vgui.Create( "DButton", Frame )
+			DermaButton:SetText( "" )
+			DermaButton:SetPos( 0, 25 )
+			DermaButton:SetSize( 200, 20 )
+			DermaButton.DoClick = function()
+				surface.PlaySound( "buttons/button14.wav" )
+				OpenClientSettings( Frame )
+			end
+			DermaButton.Paint = function(self, w, h ) 
+				local Col = (self:IsHovered() or IsClientSelected) and Color( 255, 255, 255, 255 ) or Color( 150, 150, 150, 255 )
+				draw.DrawText( "CLIENT", "LFS_FONT", w * 0.5, 0, Col, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+			end
+			
+			local DermaButton = vgui.Create( "DButton", Frame )
+			DermaButton:SetText( "" )
+			DermaButton:SetPos( 200, 25 )
+			DermaButton:SetSize( 200, 20 )
+			DermaButton.DoClick = function()
+				if LocalPlayer():IsSuperAdmin() then
+					surface.PlaySound( "buttons/button14.wav" )
+					OpenServerSettings( Frame )
+				else
+					surface.PlaySound( "buttons/button11.wav" )
 				end
+			end
+			DermaButton.Paint = function(self, w, h ) 
+				local Highlight = (self:IsHovered() or not IsClientSelected)
+				
+				local Col = Highlight and Color( 255, 255, 255, 255 ) or Color( 150, 150, 150, 255 )
+				draw.DrawText( "SERVER", "LFS_FONT", w * 0.5, 0, Col, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+				
+				surface.SetDrawColor( 255, 255, 255, Highlight and 255 or 50 )
+				surface.SetMaterial( adminMat )
+				surface.DrawTexturedRect( 3, 2, 16, 16 )
 			end
 		end
 	end
@@ -830,9 +998,7 @@ if CLIENT then
 		end
 	} )
 	
-	concommand.Add( "lfs_openmenu", function( ply, cmd, args )
-		OpenMenu()
-	end )
+	concommand.Add( "lfs_openmenu", function( ply, cmd, args ) OpenMenu() end )
 	
 	timer.Simple(10, function()
 		if not istable( scripted_ents ) or not isfunction( scripted_ents.GetList ) then return end
@@ -851,27 +1017,14 @@ if CLIENT then
 			end
 		end
 	end)
+	
+	cvars.AddChangeCallback( "lfs_show_identifier", function( convar, oldValue, newValue ) 
+		ShowPlaneIdent = tonumber( newValue ) ~=0
+	end)
 end
 
 cvars.AddChangeCallback( "ai_ignoreplayers", function( convar, oldValue, newValue ) 
 	simfphys.LFS.IgnorePlayers = tonumber( newValue ) ~=0
 end)
 
-http.Fetch("https://github.com/Blu-x92/LunasFlightSchool", function(contents,size) 
-	local LatestVersion = tonumber( string.match( contents, "%s*(%d+)\n%s*</span>\n%s*commits" ) ) or 0  -- i took this from acf. I hope they don't mind
-	
-	if simfphys.LFS.GetVersion() >= LatestVersion then
-		print("[LFS] is up to date, Version: "..simfphys.LFS.GetVersion())
-	else
-		print("[LFS] a newer version is available! Version: "..LatestVersion..", You have Version: "..simfphys.LFS.GetVersion())
-		print("[LFS] get the latest version at https://github.com/Blu-x92/LunasFlightSchool")
-		
-		if CLIENT then 
-			timer.Simple(10, function() 
-				chat.AddText( Color( 255, 0, 0 ), "[LFS] a newer version is available!" )
-				surface.PlaySound( "lfs/notification/ding.ogg" )
-				timer.Simple(0.5, function() surface.PlaySound( "lfs/notification/"..math.random(1,19)..".ogg" ) end )
-			end)
-		end
-	end
-end)
+ simfphys.LFS.CheckUpdates()
