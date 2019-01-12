@@ -112,6 +112,7 @@ function ENT:OnEngineStopped()
 end
 
 function ENT:OnVtolMode( IsOn )
+	--[[ called when vtol mode is activated / deactivated ]]--
 end
 
 function ENT:OnLandingGearToggled( bOn )

@@ -39,8 +39,8 @@ if SERVER then
 	end
 	
 	function ENT:FollowTarget( followent )
-		local speed = self:GetStartVelocity() + (self:GetDirtyMissile() and 5000 or 3000)
-		local turnrate = self:GetDirtyMissile() and 100 or (self:GetCleanMissile() and 55 or 45)
+		local speed = self:GetStartVelocity() + (self:GetDirtyMissile() and 5000 or 3500)
+		local turnrate = (self:GetCleanMissile() or self:GetDirtyMissile()) and 60 or 50
 		
 		local TargetPos = followent:LocalToWorld( followent:OBBCenter() )
 		
@@ -368,14 +368,6 @@ else
 	end
 
 	function ENT:Explosion( pos )
-		if self:GetDirtyMissile() then
-			local effectdata = EffectData()
-				effectdata:SetOrigin( pos )
-			util.Effect( "lfs_explosion", effectdata )
-			
-			return
-		end
-		
 		local emitter = self.Emitter
 		if not emitter then return end
 		

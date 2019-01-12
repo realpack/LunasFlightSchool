@@ -217,7 +217,6 @@ function SWEP:PrimaryAttack()
 	end
 end
 
-
 function SWEP:SecondaryAttack()
 	return false
 end
@@ -244,10 +243,10 @@ local function DrawCircle( X, Y, radius )
 end
 
 function SWEP:UnLock()
-	self:SaveStopSounds()
+	self:StopSounds()
 end
 
-function SWEP:SaveStopSounds()
+function SWEP:StopSounds()
 	if self.TrackSND then
 		self.TrackSND:Stop()
 		self.TrackSND = nil
@@ -264,16 +263,16 @@ function SWEP:SaveStopSounds()
 end
 
 function SWEP:Holster()
-	self:SaveStopSounds()
+	self:StopSounds()
 	return true
 end
 
 function SWEP:OnDrop()
-	self:SaveStopSounds()
+	self:StopSounds()
 end
 
 function SWEP:OwnerChanged()
-	self:SaveStopSounds()
+	self:StopSounds()
 end
 
 function SWEP:DrawHUD()

@@ -46,12 +46,8 @@ end
 function ENT:OnRemove()
 	self:SoundStop()
 	
-	if IsValid( self.TheRotor ) then
-		self.TheRotor:Remove()
-	end
-	
-	if IsValid( self.TheLandingGear ) then
-		self.TheLandingGear:Remove()
+	if IsValid( self.TheRotor ) then -- if we have an rotor
+		self.TheRotor:Remove() -- remove it
 	end
 end
 
