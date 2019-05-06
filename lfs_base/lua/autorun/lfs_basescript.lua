@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 125 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 136)
+simfphys.LFS.VERSION = 126 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 136)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -150,6 +150,41 @@ if SERVER then
 	util.AddNetworkString( "lfs_failstartnotify" )
 	util.AddNetworkString( "lfs_shieldhit" )
 	util.AddNetworkString( "lfs_admin_setconvar" )
+	util.AddNetworkString( "lfs_player_request_filter" )
+	
+	net.Receive( "lfs_player_request_filter", function( length, ply )
+		if not IsValid( ply ) then return end
+		
+		local LFSent = net.ReadEntity()
+		
+		if not IsValid( LFSent ) then return end
+		
+		if not istable( LFSent.CrosshairFilterEnts ) then
+			LFSent.CrosshairFilterEnts = {}
+			
+			for _, Entity in pairs( constraint.GetAllConstrainedEntities( LFSent ) ) do
+				if IsValid( Entity ) then
+					if not Entity:GetNoDraw() then -- dont add nodraw entites. They are NULL for client anyway
+						table.insert( LFSent.CrosshairFilterEnts, Entity )
+					end
+				end
+			end
+			
+			for _, Parent in pairs( LFSent.CrosshairFilterEnts ) do
+				local Childs = Parent:GetChildren()
+				for _, Child in pairs( Childs ) do
+					if IsValid( Child ) then
+						table.insert( LFSent.CrosshairFilterEnts, Child )
+					end
+				end
+			end
+		end
+		
+		net.Start( "lfs_player_request_filter" )
+			net.WriteEntity( LFSent )
+			net.WriteTable( LFSent.CrosshairFilterEnts )
+		net.Send( ply )
+	end)
 	
 	net.Receive( "lfs_admin_setconvar", function( length, ply )
 		if not IsValid( ply ) or not ply:IsSuperAdmin() then return end
@@ -661,6 +696,16 @@ if CLIENT then
 		end
 	end
 
+	net.Receive( "lfs_player_request_filter", function( length )
+		local LFSent = net.ReadEntity()
+		
+		if not IsValid( LFSent ) then return end
+		
+		local Filter = net.ReadTable()
+		
+		LFSent.CrosshairFilterEnts = Filter
+	end )
+
 	local LFS_TIME_NOTIFY = 0
 	net.Receive( "lfs_failstartnotify", function( len )
 		surface.PlaySound( "common/wpn_hudon.ogg" )
@@ -676,7 +721,7 @@ if CLIENT then
 		end
 	end )
 
-	hook.Add( "HUDPaint", "!!!!LFS_hud", function()
+	hook.Add( "HUDPaint", "!!!!!LFS_hud", function()
 		local ply = LocalPlayer()
 		
 		if ply:GetViewEntity() ~= ply then return end
@@ -731,13 +776,13 @@ if CLIENT then
 		local TracePlane = util.TraceLine( {
 			start = startpos,
 			endpos = (startpos + Parent:GetForward() * 50000),
-			filter = Parent
+			filter = Parent:GetCrosshairFilterEnts()
 		} )
 		
 		local TracePilot = util.TraceLine( {
 			start = startpos,
 			endpos = (startpos + ply:EyeAngles():Forward() * 50000),
-			filter = Parent
+			filter = Parent:GetCrosshairFilterEnts()
 		} )
 		
 		local HitPlane = TracePlane.HitPos:ToScreen()

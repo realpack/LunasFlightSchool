@@ -4,25 +4,7 @@ AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "cl_init.lua" )
 include("shared.lua")
 
-function ENT:Think()
-	
-	self:HandleActive()
-	self:HandleStart()
-	self:HandleLandingGear()
-	self:HandleWeapons()
-	self:CalcFlight()
-	self:PrepExplode()
-	self:RechargeShield()
-	self:OnTick()
-	self:CalcEngineStart()
-	self:CalcEngineStop()
-	
-	self:NextThink( CurTime() )
-	
-	return true
-end
-
-function ENT:CalcFlight()
+local function CalcFlight( self )
 	if not self:GetEngineActive() or self:IsStartStopping() then return end
 	
 	self:InWater()
@@ -147,6 +129,24 @@ function ENT:CalcFlight()
 	self:SetRotPitch( AngForce.p / MaxPitch )
 	self:SetRotYaw( AngForce.y / MaxYaw)
 	self:SetRotRoll( AngForce.r / MaxRoll )
+end
+
+function ENT:Think()
+	
+	self:HandleActive()
+	self:HandleStart()
+	self:HandleLandingGear()
+	self:HandleWeapons()
+	CalcFlight( self )
+	self:PrepExplode()
+	self:RechargeShield()
+	self:OnTick()
+	self:CalcEngineStart()
+	self:CalcEngineStop()
+	
+	self:NextThink( CurTime() )
+	
+	return true
 end
 
 function ENT:OnRotorDestroyed()

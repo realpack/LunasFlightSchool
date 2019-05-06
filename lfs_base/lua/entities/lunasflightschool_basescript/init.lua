@@ -138,32 +138,8 @@ end
 function ENT:OnTick()
 end
 
-function ENT:Think()
-	
-	self:HandleActive()
-	self:HandleStart()
-	self:HandleLandingGear()
-	self:HandleWeapons()
-	self:HandleEngine()
-	self:CalcFlight()
-	self:PrepExplode()
-	self:RechargeShield()
-	self:OnTick()
-	
-	if not self.REchecked then
-		self.REchecked = true
-		if isfunction( self.RunEngine ) then
-			print("[LFS]: "..self.PrintName.." ("..self:GetClass()..") is using an outdated LFS-function. Please contact the Creator.")
-			print("Note for Creator: To change Throttle increments use 'ENT.RPMThrottleIncrement' variable instead. More info can be found in the Template. Throttle sounds should be done in 'ENT:OnKeyThrottle( bKeyPressed )'.")
-		end
-	end
-	
-	self:NextThink( CurTime() )
-	
-	return true
-end
 
-function ENT:CalcFlight()
+local function CalcFlight( self )
 	local MaxTurnSpeed = self:GetMaxTurnSpeed()
 	local MaxPitch = MaxTurnSpeed.p
 	local MaxYaw = MaxTurnSpeed.y
@@ -277,6 +253,31 @@ function ENT:CalcFlight()
 	self:SetRotPitch( (Pitch / MaxPitch) * 30 )
 	self:SetRotYaw( (Yaw / MaxYaw) * 30 )
 	self:SetRotRoll( (Roll / MaxRoll) * 30 )
+end
+
+function ENT:Think()
+	
+	self:HandleActive()
+	self:HandleStart()
+	self:HandleLandingGear()
+	self:HandleWeapons()
+	self:HandleEngine()
+	CalcFlight( self )
+	self:PrepExplode()
+	self:RechargeShield()
+	self:OnTick()
+	
+	if not self.REchecked then
+		self.REchecked = true
+		if isfunction( self.RunEngine ) then
+			print("[LFS]: "..self.PrintName.." ("..self:GetClass()..") is using an outdated LFS-function. Please contact the Creator.")
+			print("Note for Creator: To change Throttle increments use 'ENT.RPMThrottleIncrement' variable instead. More info can be found in the Template. Throttle sounds should be done in 'ENT:OnKeyThrottle( bKeyPressed )'.")
+		end
+	end
+	
+	self:NextThink( CurTime() )
+	
+	return true
 end
 
 function ENT:SteerWheel( SteerAngle )
