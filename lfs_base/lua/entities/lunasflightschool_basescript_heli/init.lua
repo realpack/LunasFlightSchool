@@ -111,8 +111,8 @@ local function CalcFlight( self )
 		
 		self.Roll = 0
 	end
-	
-	self:SetRPM( self:GetLimitRPM() * ((self.Thrust + cForce) / (self:GetMaxThrustHeli() + cForce)) )
+
+	self:SetRPM( self:GetLimitRPM() * math.max((self.Thrust + cForce) / (self:GetMaxThrustHeli() + cForce),0.12) )
 	
 	AngForce.p = math.Clamp(AngForce.p,-MaxPitch,MaxPitch)
 	AngForce.y = math.Clamp(AngForce.y,-MaxYaw,MaxYaw)
