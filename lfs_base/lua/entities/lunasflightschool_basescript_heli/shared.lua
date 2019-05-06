@@ -46,3 +46,7 @@ end
 function ENT:GetRotorRadius()
 	return self.RotorRadius
 end
+
+function ENT:IsHelicopter()
+	return true
+end

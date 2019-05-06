@@ -138,7 +138,6 @@ end
 function ENT:OnTick()
 end
 
-
 local function CalcFlight( self )
 	local MaxTurnSpeed = self:GetMaxTurnSpeed()
 	local MaxPitch = MaxTurnSpeed.p
@@ -812,14 +811,8 @@ function ENT:InWater()
 	return InWater
 end
 
-function ENT:IsSpaceShip()
-	return isnumber( self.Stability )
-end
-
 function ENT:GetStability()
-	self.MaxStability = self.MaxStability or 1
-	
-	local Stability = math.abs( math.Clamp( self:GetForwardVelocity() / self:GetMaxPerfVelocity(),-self.MaxStability,self.MaxStability ) )
+	local Stability = math.abs( math.Clamp( self:GetForwardVelocity() / self:GetMaxPerfVelocity(),-self:GetMaxStability(),self:GetMaxStability() ) )
 	
 	if self:IsSpaceShip() then
 		Stability = self:IsDestroyed() and 0.1 or (self:GetEngineActive() and self.Stability or 0)

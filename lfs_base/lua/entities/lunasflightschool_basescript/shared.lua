@@ -171,11 +171,25 @@ function ENT:GetRudderPos()
 	return self:LocalToWorld( self.RudderPos )
 end
 
+function ENT:GetMaxStability()
+	self.MaxStability = self.MaxStability or 1
+	
+	return self.MaxStability
+end
+
 function ENT:GetThrottlePercent()
 	local IdleRPM = self:GetIdleRPM()
 	local MaxRPM = self:GetMaxRPM()
 	
 	return math.max( math.Round(((self:GetRPM() - IdleRPM) / (MaxRPM - IdleRPM)) * 100,0) ,0)
+end
+
+function ENT:IsSpaceShip()
+	return isnumber( self.Stability )
+end
+
+function ENT:IsHelicopter()
+	return false
 end
 
 function ENT:GetPassengerSeats()

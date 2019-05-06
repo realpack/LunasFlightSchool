@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 126 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 136)
+simfphys.LFS.VERSION = 127 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 136)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -146,6 +146,11 @@ end
 
 if SERVER then 
 	resource.AddWorkshop("1571918906")
+	
+	-- doing this because im 100% sure that people will have issues with missing textures because they don't keep their addons up to date.
+	resource.AddSingleFile( "materials/effects/lfs_base/spark.vmt" ) 
+	resource.AddSingleFile( "materials/effects/lfs_base/spark.vtf" ) 
+	resource.AddSingleFile( "materials/effects/lfs_base/spark_brightness.vtf" ) 
 	
 	util.AddNetworkString( "lfs_failstartnotify" )
 	util.AddNetworkString( "lfs_shieldhit" )
@@ -538,13 +543,11 @@ if CLIENT then
 		
 		local speed = math.Round(vel * 0.09144,0)
 		draw.SimpleText( "IAS", "LFS_FONT", 10, 35, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
-		draw.SimpleText( speed.."km/h" , "LFS_FONT", 120, 35, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+		draw.SimpleText( speed.."km/h", "LFS_FONT", 120, 35, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 		
 		local ZPos = math.Round( ent:GetPos().z,0)
 		if (ZPos + MinZ)< 0 then MinZ = math.abs(ZPos) end
-		
 		local alt = math.Round( (ent:GetPos().z + MinZ) * 0.0254,0)
-		
 		draw.SimpleText( "ALT", "LFS_FONT", 10, 60, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 		draw.SimpleText( alt.."m" , "LFS_FONT", 120, 60, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 		
@@ -720,7 +723,7 @@ if CLIENT then
 			util.Effect( "lfs_shield_deflect", effectdata )
 		end
 	end )
-
+	
 	hook.Add( "HUDPaint", "!!!!!LFS_hud", function()
 		local ply = LocalPlayer()
 		
@@ -1066,6 +1069,10 @@ if CLIENT then
 	cvars.AddChangeCallback( "lfs_show_identifier", function( convar, oldValue, newValue ) 
 		ShowPlaneIdent = tonumber( newValue ) ~=0
 	end)
+	
+	-- conflict fix
+	hook.Add( "HUDPaint", "!!!!LFS_hud", function() end )
+	timer.Simple( 2, function() hook.Remove( "HUDPaint", "!!!!LFS_hud" ) end )
 end
 
 cvars.AddChangeCallback( "ai_ignoreplayers", function( convar, oldValue, newValue ) 
