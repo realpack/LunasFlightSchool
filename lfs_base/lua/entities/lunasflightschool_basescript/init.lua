@@ -156,12 +156,12 @@ local function CalcFlight( self )
 	
 	local A = false
 	local D = false
-	local WingFinFadeOut = 1
-	local RudderFadeOut = 1
 	
 	local LocalAngPitch = 0
 	local LocalAngYaw = 0
 	local LocalAngRoll = 0
+	
+	local AngDiff = 0
 	
 	if IsValid( Driver ) then 
 		local EyeAngles = Pod:WorldToLocalAngles( Driver:EyeAngles() )
@@ -191,27 +191,36 @@ local function CalcFlight( self )
 		local EyeAngForward = EyeAngles:Forward()
 		local Forward = self:GetForward()
 		
-		WingFinFadeOut = math.max((90 - math.deg( math.acos( math.Clamp( Forward:Dot(EyeAngForward) ,-1,1) ) ) ) / 90,0)
-		RudderFadeOut = math.max((60 - math.deg( math.acos( math.Clamp( Forward:Dot(EyeAngForward) ,-1,1) ) ) ) / 60,0)
+		AngDiff = math.deg( math.acos( math.Clamp( Forward:Dot(EyeAngForward) ,-1,1) ) )
 		
 		A = Driver:KeyDown( IN_MOVELEFT ) 
 		D = Driver:KeyDown( IN_MOVERIGHT )
 	else
+		local EyeAngles = self:GetAngles()
+		
 		if self:GetAI() then
-			local EyeAngles = self:RunAI()
-			local LocalAngles = self:WorldToLocalAngles( EyeAngles )
-			
-			LocalAngPitch = LocalAngles.p
-			LocalAngYaw = LocalAngles.y
-			LocalAngRoll = LocalAngles.r
-			
-			local EyeAngForward = EyeAngles:Forward()
-			
-			WingFinFadeOut = math.max((90 - math.deg( math.acos(   math.Clamp( self:GetForward():Dot(EyeAngForward) ,-1,1) ) ) ) / 90,0)
-			RudderFadeOut = math.max((60 - math.deg( math.acos(   math.Clamp( self:GetForward():Dot(EyeAngForward) ,-1,1) ) ) ) / 60,0)
+			EyeAngles = self:RunAI()
+		else
+			if self:IsSpaceShip() and isangle( self.StoredEyeAngles ) then
+				EyeAngles = self.StoredEyeAngles
+			end
 		end
+		
+		local LocalAngles = self:WorldToLocalAngles( EyeAngles )
+		
+		LocalAngPitch = LocalAngles.p
+		LocalAngYaw = LocalAngles.y
+		LocalAngRoll = LocalAngles.r
+		
+		local EyeAngForward = EyeAngles:Forward()
+		local Forward = self:GetForward()
+		
+		AngDiff = math.deg( math.acos( math.Clamp( Forward:Dot(EyeAngForward) ,-1,1) ) )
 	end
 	
+	local WingFinFadeOut = math.max( (90 - AngDiff ) / 90, 0 )
+	local RudderFadeOut = math.max( (60 - AngDiff ) / 60, 0 )
+
 	self:SteerWheel( LocalAngYaw )
 	
 	local Stability = self:GetStability()
