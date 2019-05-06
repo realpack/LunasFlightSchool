@@ -1266,11 +1266,11 @@ function ENT:Explode()
 	local Gunner = self:GetGunner()
 	
 	if IsValid( Driver ) then
-		Driver:TakeDamage( 200, self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
+		Driver:TakeDamage( Driver:Health(), self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
 	end
 	
 	if IsValid( Gunner ) then
-		Gunner:TakeDamage( 200, self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
+		Gunner:TakeDamage( Gunner:Health(), self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
 	end
 	
 	if istable( self.pSeats ) then
@@ -1278,7 +1278,7 @@ function ENT:Explode()
 			if IsValid( pSeat ) then
 				local psgr = pSeat:GetDriver()
 				if IsValid( psgr ) then
-					psgr:TakeDamage( 200, self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
+					psgr:TakeDamage( psgr:Health(), self.FinalAttacker or Entity(0), self.FinalInflictor or Entity(0) )
 				end
 			end
 		end
