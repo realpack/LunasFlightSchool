@@ -141,8 +141,8 @@ function ENT:HandleWeapons(Fire1, Fire2)
 	
 	if IsValid( Driver ) then
 		if self:GetAmmoPrimary() > 0 then
-			Fire1 = Driver:KeyDown( IN_ATTACK )
-			Fire2 = Driver:KeyDown( IN_ATTACK2 )
+			Fire1 = Driver:lfsGetInput( "PRI_ATTACK" )
+			Fire2 = Driver:lfsGetInput( "SEC_ATTACK" )
 		end
 	end
 	

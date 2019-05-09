@@ -14,7 +14,7 @@ function ENT:ExhaustFX()
 	
 	local Driver = self:GetDriver()
 	if IsValid( Driver ) then
-		local W = Driver:KeyPressed( IN_FORWARD )
+		local W = Driver:lfsGetInput( "+THROTTLE" )
 		if W ~= self.oldW then
 			self.oldW = W
 			if W then
@@ -115,7 +115,7 @@ function ENT:AnimFins()
 	local Yaw = math.Clamp( EyeAngles.y,-45,45)
 	local Pitch = math.Clamp( EyeAngles.p,-15,15 )
 	
-	if not Driver:KeyDown( IN_WALK ) and not HasGunner then
+	if not Driver:lfsGetInput( "FREELOOK" ) and not HasGunner then
 		Yaw = 0
 		Pitch = 0
 	end

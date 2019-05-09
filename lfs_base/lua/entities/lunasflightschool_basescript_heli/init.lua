@@ -51,7 +51,7 @@ local function CalcFlight( self )
 	if IsValid( Driver ) then
 		EyeAngles = Pod:WorldToLocalAngles( Driver:EyeAngles() )
 		
-		if Driver:KeyDown( IN_WALK ) then
+		if Driver:lfsGetInput( "FREELOOK" ) then
 			if isangle( self.StoredEyeAngles ) then
 				EyeAngles = self.StoredEyeAngles
 			end
@@ -59,12 +59,12 @@ local function CalcFlight( self )
 			self.StoredEyeAngles = EyeAngles
 		end
 		
-		W = Driver:KeyDown( IN_FORWARD )
-		A = Driver:KeyDown( IN_MOVELEFT )
-		S = not W and OnGround or Driver:KeyDown( IN_BACK )
-		D = Driver:KeyDown( IN_MOVERIGHT )
+		W = Driver:lfsGetInput( "+THROTTLE" )
+		A = Driver:lfsGetInput( "-ROLL" )
+		S = not W and OnGround or Driver:lfsGetInput( "-THROTTLE" )
+		D = Driver:lfsGetInput( "+ROLL" )
 		
-		HoverMode = Driver:KeyDown( IN_SPEED )
+		HoverMode = Driver:lfsGetInput( "HOVERMODE" )
 		
 		TargetThrust = self:GetMaxThrustHeli() * ((W and 1 or 0)  - (S and 1 or 0))
 	else

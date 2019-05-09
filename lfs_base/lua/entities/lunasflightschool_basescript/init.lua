@@ -118,11 +118,11 @@ function ENT:HandleWeapons(Fire1, Fire2)
 	
 	if IsValid( Driver ) then
 		if self:GetAmmoPrimary() > 0 then
-			Fire1 = Driver:KeyDown( IN_ATTACK )
+			Fire1 = Driver:lfsGetInput( "PRI_ATTACK" )
 		end
 		
 		if self:GetAmmoSecondary() > 0 then
-			Fire2 = Driver:KeyDown( IN_ATTACK2 )
+			Fire2 = Driver:lfsGetInput( "SEC_ATTACK" )
 		end
 	end
 	
@@ -166,7 +166,7 @@ local function CalcFlight( self )
 	if IsValid( Driver ) then 
 		local EyeAngles = Pod:WorldToLocalAngles( Driver:EyeAngles() )
 		
-		if Driver:KeyDown( IN_WALK ) then
+		if Driver:lfsGetInput( "FREELOOK" ) then
 			if isangle( self.StoredEyeAngles ) then
 				EyeAngles = self.StoredEyeAngles
 			end
@@ -176,12 +176,30 @@ local function CalcFlight( self )
 		
 		local LocalAngles = self:WorldToLocalAngles( EyeAngles )
 		
-		if Driver:KeyDown( IN_SPEED ) and not IsInVtolMode then
+		local Pitch_Up = Driver:lfsGetInput( "+PITCH" )
+		local Pitch_Dn = Driver:lfsGetInput( "-PITCH" )
+		local Yaw_R = Driver:lfsGetInput( "+YAW" )
+		local Yaw_L = Driver:lfsGetInput( "-YAW" )
+		local Roll_R = Driver:lfsGetInput( "+ROLL" )
+		local Roll_L = Driver:lfsGetInput( "-ROLL" ) 
+		
+		if (Pitch_Up or Pitch_Dn or Yaw_R or Yaw_L) and not IsInVtolMode then
 			EyeAngles = self:GetAngles()
 			
 			self.StoredEyeAngles = Angle(EyeAngles.p,EyeAngles.y,0)
 			
-			LocalAngles = Angle(-90,0,0)
+			local X = (Pitch_Up and -90 or 0) + (Pitch_Dn and 90 or 0)
+			local Y = (Yaw_R and -90 or 0) + (Yaw_L and 90 or 0)
+			
+			LocalAngles = Angle(X,Y,0)
+		end
+		
+		if Yaw_R or Yaw_L then
+			A = not Roll_R
+			D = not Roll_L
+		else
+			A = Roll_L
+			D = Roll_R
 		end
 		
 		LocalAngPitch = LocalAngles.p
@@ -192,9 +210,6 @@ local function CalcFlight( self )
 		local Forward = self:GetForward()
 		
 		AngDiff = math.deg( math.acos( math.Clamp( Forward:Dot(EyeAngForward) ,-1,1) ) )
-		
-		A = Driver:KeyDown( IN_MOVELEFT ) 
-		D = Driver:KeyDown( IN_MOVERIGHT )
 	else
 		local EyeAngles = self:GetAngles()
 		
@@ -351,10 +366,10 @@ function ENT:HandleEngine()
 		local KeyBrake = false
 		
 		if IsValid( Driver ) then 
-			KeyThrottle = Driver:KeyDown( IN_FORWARD )
-			KeyBrake = Driver:KeyDown( IN_BACK )
+			KeyThrottle = Driver:lfsGetInput( "+THROTTLE" )
+			KeyBrake = Driver:lfsGetInput( "-THROTTLE" )
 			
-			RPMAdd = ((KeyThrottle and self:GetThrottleIncrement() or 0) - (Driver:KeyDown( IN_BACK ) and self:GetThrottleIncrement() or 0)) * FrameTime()
+			RPMAdd = ((KeyThrottle and self:GetThrottleIncrement() or 0) - (KeyBrake and self:GetThrottleIncrement() or 0)) * FrameTime()
 		end
 		
 		if KeyThrottle ~= self.oldKeyThrottle then
@@ -402,8 +417,8 @@ function ENT:HandleEngine()
 				
 				if IsVtolActive then
 					if isnumber( self.VtolAllowInputBelowThrottle ) then
-						local KeyThrottle = Driver:KeyDown( IN_SPEED )
-						local KeyBrake = Driver:KeyDown( IN_BACK ) and self:GetThrottlePercent() <= 10
+						local KeyThrottle = Driver:lfsGetInput( "+PITCH" )
+						local KeyBrake = Driver:lfsGetInput( "-THROTTLE" ) and self:GetThrottlePercent() <= 10
 			
 						local Up = KeyThrottle and self:GetThrustVtol() or 0
 						local Down = KeyBrake and -self:GetThrustVtol() or 0
@@ -415,8 +430,8 @@ function ENT:HandleEngine()
 					else
 						self.TargetRPM = (self:GetVelocity():Length() / MaxVelocity) * LimitRPM
 						
-						local Up = Driver:KeyDown( IN_FORWARD ) and self:GetThrustVtol() or 0
-						local Down = Driver:KeyDown( IN_BACK ) and -self:GetThrustVtol() or 0
+						local Up = Driver:lfsGetInput( "+THROTTLE" ) and self:GetThrustVtol() or 0
+						local Down = Driver:lfsGetInput( "-THROTTLE" ) and -self:GetThrustVtol() or 0
 						
 						local VtolForce = (Up + Down) * PhysObj:GetMass() * FrameTime() 
 						
@@ -474,6 +489,10 @@ function ENT:HandleActive()
 				Gunner:CrosshairEnable() 
 			end
 		end
+		
+		if IsValid( Gunner ) then
+			Gunner:lfsBuildControls()
+		end
 	end
 	
 	local Pod = self:GetDriverSeat()
@@ -498,6 +517,10 @@ function ENT:HandleActive()
 		
 		self:SetDriver( Driver )
 		self:SetActive( IsValid( Driver ) )
+		
+		if IsValid( Driver ) then
+			Driver:lfsBuildControls()
+		end
 		
 		if Active then
 			self:EmitSound( "vehicles/atv_ammo_close.wav" )
@@ -534,7 +557,7 @@ function ENT:HandleStart()
 	local Driver = self:GetDriver()
 	
 	if IsValid( Driver ) then
-		local KeyReload = Driver:KeyDown( IN_RELOAD )
+		local KeyReload = Driver:lfsGetInput( "ENGINE" )
 		
 		if self.OldKeyReload ~= KeyReload then
 			self.OldKeyReload = KeyReload
@@ -549,7 +572,7 @@ function ENT:HandleLandingGear()
 	local Driver = self:GetDriver()
 	
 	if IsValid( Driver ) then
-		local KeyJump = Driver:KeyDown( IN_JUMP )
+		local KeyJump = Driver:lfsGetInput( "VSPEC" )
 		
 		if self.OldKeyJump ~= KeyJump then
 			self.OldKeyJump = KeyJump
@@ -679,7 +702,7 @@ function ENT:SetPassenger( ply )
 	local AI = self:GetAI()
 	local DriverSeat = self:GetDriverSeat()
 	
-	if IsValid( DriverSeat ) and not IsValid( DriverSeat:GetDriver() ) and not ply:KeyDown( IN_WALK ) and not AI then
+	if IsValid( DriverSeat ) and not IsValid( DriverSeat:GetDriver() ) and not ply:lfsGetInput( "FREELOOK" ) and not AI then
 		ply:EnterVehicle( DriverSeat )
 	else
 		local Seat = NULL

@@ -6,7 +6,7 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 132 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 136)
+simfphys.LFS.VERSION = 133 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 136)
 
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
@@ -15,54 +15,48 @@ simfphys.LFS.IgnorePlayers = cVar_playerignore and cVar_playerignore:GetBool() o
 simfphys.LFS.FreezeTeams = CreateConVar( "lfs_freeze_teams", "0", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"enable/disable auto ai-team switching" )
 simfphys.LFS.PlayerDefaultTeam = CreateConVar( "lfs_default_teams", "0", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"set default player ai-team" )
 
-simfphys.LFS.pSwitchKeys = {
-	[KEY_1] = 1,
-	[KEY_2] = 2,
-	[KEY_3] = 3,
-	[KEY_4] = 4,
-	[KEY_5] = 5,
-	[KEY_6] = 6,
-	[KEY_7] = 7,
-	[KEY_8] = 8,
-	[KEY_9] = 9,
-	[KEY_0] = 10,
+simfphys.LFS.pSwitchKeys = {[KEY_1] = 1,[KEY_2] = 2,[KEY_3] = 3,[KEY_4] = 4,[KEY_5] = 5,[KEY_6] = 6,[KEY_7] = 7,[KEY_8] = 8,[KEY_9] = 9,[KEY_0] = 10}
+simfphys.LFS.pSwitchKeysInv = {[1] = KEY_1,[2] = KEY_2,[3] = KEY_3,[4] = KEY_4,[5] = KEY_5,[6] = KEY_6,[7] = KEY_7,[8] = KEY_8,[9] = KEY_9,[10] = KEY_0}
+
+simfphys.LFS.KEYS_DEFAULT = {
+	{name = "+THROTTLE",		name_menu = "Throttle Increase",	default = KEY_W,		cmd = "cl_lfs_throttle_inc"},
+	{name = "-THROTTLE",		name_menu = "Throttle Decrease",	default = KEY_S,		cmd = "cl_lfs_throttle_dec"},
+	
+	{name = "+PITCH",			name_menu = "Pitch Up",			default = KEY_LSHIFT,	cmd = "cl_lfs_pitch_up"},
+	{name = "-PITCH",			name_menu = "Pitch Down",		default = KEY_LCONTROL ,	cmd = "cl_lfs_pitch_Down"},
+	{name = "-YAW",			name_menu = "Yaw Left",			default = KEY_Q,		cmd = "cl_lfs_yaw_left"},
+	{name = "+YAW",			name_menu = "Yaw Right",		default = KEY_E,		cmd = "cl_lfs_yaw_right"},
+	{name = "-ROLL",			name_menu = "Roll Left",			default = KEY_A,		cmd = "cl_lfs_roll_left"},
+	{name = "+ROLL",			name_menu = "Roll Right",			default = KEY_D,		cmd = "cl_lfs_roll_right"},
+	
+	{name = "ENGINE",			name_menu = "Toggle Engine",		default = KEY_R,		cmd = "cl_lfs_toggle_engine"},
+	{name = "VSPEC",			name_menu = "Toggle Misc",		default = KEY_SPACE,	cmd = "cl_lfs_toggle_vspecific"},
+	{name = "FREELOOK",		name_menu = "Freelook",			default = KEY_LALT,		cmd = "cl_lfs_freelook"},
+	
+	{name = "PRI_ATTACK",		name_menu = "Primary Attack",		default = MOUSE_LEFT,	cmd = "cl_lfs_primaryattack"},
+	{name = "SEC_ATTACK",		name_menu = "Secondary Attack",	default = MOUSE_RIGHT,	cmd = "cl_lfs_secondaryattack"},
+	
+	{name = "HOVERMODE",		name_menu = "Helicopter Hovermode",default = KEY_H,		cmd = "cl_lfs_heli_hover"},
 }
 
-simfphys.LFS.pSwitchKeysInv = {
-	[1] = KEY_1,
-	[2] = KEY_2,
-	[3] = KEY_3,
-	[4] = KEY_4,
-	[5] = KEY_5,
-	[6] = KEY_6,
-	[7] = KEY_7,
-	[8] = KEY_8,
-	[9] = KEY_9,
-	[10] = KEY_0,
+simfphys.LFS.KEYS_IN = {
+	["+THROTTLE"] = IN_FORWARD,
+	["-THROTTLE"] = IN_BACK,
+	["+PITCH"] = IN_SPEED,
+	["HOVERMODE"] = IN_SPEED,
+	["-PITCH"] = 0,
+	["+Yaw"] = 0,
+	["-Yaw"] = 0,
+	["-ROLL"] = IN_MOVELEFT,
+	["+ROLL"] = IN_MOVERIGHT,
+	["ENGINE"] = IN_RELOAD,
+	["VSPEC"] = IN_JUMP,
+	["FREELOOK"] = IN_WALK,
+	["PRI_ATTACK"] = IN_ATTACK,
+	["SEC_ATTACK"] = IN_ATTACK2,
 }
 
-simfphys.LFS.NotificationVoices = {
-	["RANDOM"] = "0",
-	["LFSORIGINAL"] = "1",
-	["Charles"] = "2",
-	["Grace"] = "3",
-	["Darren"] = "4",
-	["Susan"] = "5",
-	["Graham"] = "6",
-	["Peter"] = "7",
-	["Rachel"] = "8",
-	["Gabriel"] = "9",
-	["Gabriella"] = "10",
-	["Rod"] = "11",
-	["Mike"] = "12",
-	["Sharon"] = "13",
-	["Tim"] = "14",
-	["Ryan"] = "15",
-	["Tracy"] = "16",
-	["Amanda"] = "17",
-	["Selene"] = "18",
-	["Audrey"] = "19",
-}
+simfphys.LFS.NotificationVoices = {["RANDOM"] = "0",["LFSORIGINAL"] = "1",["Charles"] = "2",["Grace"] = "3",["Darren"] = "4",["Susan"] = "5",["Graham"] = "6",["Peter"] = "7",["Rachel"] = "8",["Gabriel"] = "9",["Gabriella"] = "10",["Rod"] = "11",["Mike"] = "12",["Sharon"] = "13",["Tim"] = "14",["Ryan"] = "15",["Tracy"] = "16",["Amanda"] = "17",["Selene"] = "18",["Audrey"] = "19"}
 
 function simfphys.LFS.CheckUpdates()
 	http.Fetch("https://github.com/Blu-x92/LunasFlightSchool", function(contents,size) 
@@ -144,6 +138,54 @@ function meta:lfsGetAITeam()
 	return self:GetNWInt( "lfsAITeam", simfphys.LFS.PlayerDefaultTeam:GetInt() )
 end
 
+function meta:lfsBuildControls()
+	if istable( self.LFS_BINDS ) then
+		table.Empty( self.LFS_BINDS )
+	else
+		self.LFS_BINDS = {}
+	end
+	
+	if SERVER then
+		self.LFS_HIPSTER = self:GetInfoNum( "lfs_hipster", 0 ) == 1
+		
+		for _,v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
+			self.LFS_BINDS[ self:GetInfoNum( v.cmd, 0 ) ] = v.name
+		end
+	else
+		self.LFS_HIPSTER = GetConVar( "lfs_hipster" ):GetBool()
+		
+		for _,v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
+			self.LFS_BINDS[ v.name ] = GetConVar( v.cmd ):GetInt()
+		end
+	end
+end
+
+function meta:lfsGetControls()
+	if not istable( self.LFS_BINDS ) then
+		self:lfsBuildControls()
+	end
+	
+	return self.LFS_BINDS
+end
+
+function meta:lfsGetInput( name )
+	if self.LFS_HIPSTER then
+		if SERVER then
+			self.LFS_KEYDOWN = self.LFS_KEYDOWN and self.LFS_KEYDOWN or {}
+			
+			return self.LFS_KEYDOWN[ name ]
+		else
+			return input.IsKeyDown( self:lfsGetControls()[ name ] ) 
+		end
+	else
+		if simfphys.LFS.KEYS_IN[ name ] then
+			return self:KeyDown( simfphys.LFS.KEYS_IN[ name ] )
+		else
+			return false
+		end
+	end
+end
+
 if SERVER then 
 	resource.AddWorkshop("1571918906")
 	
@@ -210,7 +252,26 @@ if SERVER then
 		self:SetNWInt( "lfsAITeam", nTeam )
 	end
 	
-	hook.Add( "PlayerButtonDown", "!!!lfsSeatswitcher", function( ply, button )
+	function meta:lfsSetInput( name, value )
+		self.LFS_KEYDOWN = self.LFS_KEYDOWN and self.LFS_KEYDOWN or {}
+		self.LFS_KEYDOWN[ name ] = value
+	end
+
+	hook.Add( "PlayerButtonUp", "!!!lfsButtonUp", function( ply, button )
+		local LFS_BINDS = ply:lfsGetControls()
+		
+		if LFS_BINDS[ button ] then
+			ply:lfsSetInput( LFS_BINDS[button], false )
+		end
+	end )
+	
+	hook.Add( "PlayerButtonDown", "!!!lfsButtonDown", function( ply, button )
+		local LFS_BINDS = ply:lfsGetControls()
+		
+		if LFS_BINDS[ button ] then
+			ply:lfsSetInput( LFS_BINDS[button], true )
+		end
+		
 		local vehicle = ply:lfsGetPlane()
 		
 		if not IsValid( vehicle ) then return end
@@ -392,7 +453,10 @@ if CLIENT then
 	local cvarShowPlaneIdent = CreateClientConVar( "lfs_show_identifier", 1, true, false)
 	local cvarNotificationVoice = CreateClientConVar( "lfs_notification_voice", "RANDOM", true, false)
 	local ShowPlaneIdent = cvarShowPlaneIdent and cvarShowPlaneIdent:GetBool() or true
-
+	local cvarUnlockControls = CreateClientConVar( "lfs_hipster", 0, true, true)
+	
+	for k, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do CreateClientConVar( v.cmd, v.default, true, true ) end
+	
 	function simfphys.LFS.PlayNotificationSound()
 		local soundfile = simfphys.LFS.NotificationVoices[GetConVar( "lfs_notification_voice" ):GetString()]
 
@@ -417,7 +481,7 @@ if CLIENT then
 		
 		local cvarFocus = math.Clamp( cvarCamFocus:GetFloat() , -1, 1 )
 		
-		smTran = smTran + ((ply:KeyDown( IN_WALK ) and 0 or 1) - smTran) * FrameTime() * 10
+		smTran = smTran + ((ply:lfsGetInput( "FREELOOK" ) and 0 or 1) - smTran) * FrameTime() * 10
 		
 		local view = {}
 		view.origin = pos
@@ -801,7 +865,7 @@ if CLIENT then
 				surface.SetDrawColor( 255, 0, 0, math.abs( math.cos( CurTime() * 10 ) ) * 255 )
 			end
 			
-			if not ply:KeyDown( IN_WALK ) or FailStart then
+			if not ply:lfsGetInput( "FREELOOK" ) or FailStart then
 				surface.DrawLine( HitPlane.x + Dir.x * 10, HitPlane.y + Dir.y * 10, HitPilot.x - Dir.x * 34, HitPilot.y- Dir.y * 34 )
 				
 				-- shadow
@@ -835,11 +899,15 @@ if CLIENT then
 	
 	local IsClientSelected = true
 	
-	local function OpenClientSettings( Frame )
+	function simfphys.LFS.OpenClientSettings( Frame )
 		IsClientSelected = true
 		
 		if IsValid( Frame.SV_PANEL ) then
 			Frame.SV_PANEL:Remove()
+		end
+		
+		if IsValid( Frame.CT_PANEL ) then
+			Frame.CT_PANEL:Remove()
 		end
 		
 		if not IsValid( Frame.CL_PANEL ) then
@@ -847,13 +915,13 @@ if CLIENT then
 			DPanel:SetPos( 0, 45 )
 			DPanel:SetSize( 400, 175 )
 			DPanel.Paint = function(self, w, h ) 
-				draw.DrawText( "( -1 = Focus Mouse   1 = Focus Plane )", "LFS_FONT_PANEL", 20, 65, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
+				draw.DrawText( "( -1 = Focus Mouse   1 = Focus Plane )", "LFS_FONT_PANEL", 20, 75, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 				draw.DrawText( "Update Notification Voice", "LFS_FONT_PANEL", 20, 105, Color( 200, 200, 200, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 			end
 			Frame.CL_PANEL = DPanel
 			
 			local slider = vgui.Create( "DNumSlider", DPanel )
-			slider:SetPos( 20, 10 )
+			slider:SetPos( 20, 30 )
 			slider:SetSize( 300, 20 )
 			slider:SetText( "Engine Volume" )
 			slider:SetMin( 0 )
@@ -862,7 +930,7 @@ if CLIENT then
 			slider:SetConVar( "lfs_volume" )
 			
 			local slider = vgui.Create( "DNumSlider", DPanel )
-			slider:SetPos( 20, 50 )
+			slider:SetPos( 20, 60 )
 			slider:SetSize( 300, 20 )
 			slider:SetText( "Camera Focus" )
 			slider:SetMin( -1 )
@@ -895,14 +963,179 @@ if CLIENT then
 				surface.DrawTexturedRect( 0, 0, w, h ) 
 			end
 			
+			local DButton = vgui.Create("DPanel",DPanel)
+			DButton:SetText("")
+			DButton:SetPos(0,0)
+			DButton:SetSize(201,20)
+			DButton.Paint = function(self, w, h ) 
+				draw.DrawText( "SETTINGS", "LFS_FONT", w * 0.5, -1, Color( 255, 255, 255, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+			end
+			
+			local DButton = vgui.Create("DButton",DPanel)
+			DButton:SetText("")
+			DButton:SetPos(200,0)
+			DButton:SetSize(200,20)
+			DButton.DoClick = function() 
+				surface.PlaySound( "buttons/button14.wav" )
+				simfphys.LFS.OpenControlSettings( Frame )
+			end
+			DButton.Paint = function(self, w, h ) 
+				local Highlight = self:IsHovered()
+				
+				surface.SetDrawColor(0,0,0,255)
+				surface.DrawRect(0, 0, w, h)
+				
+				surface.SetDrawColor( Highlight and Color( 120, 120, 120, 255 ) or Color( 80, 80, 80, 255 ) )
+				surface.DrawRect(1, 1, w - 2, h - 2)
+				
+				draw.DrawText( "CONTROLS", "LFS_FONT", w * 0.5, -1, Highlight and Color( 255, 255, 255, 255 ) or Color( 150, 150, 150, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+			end
 		end
 	end
 	
-	local function OpenServerSettings( Frame )
+	function simfphys.LFS.OpenControlSettings( Frame )
+		IsClientSelected = true
+		
+		if IsValid( Frame.SV_PANEL ) then
+			Frame.SV_PANEL:Remove()
+		end
+		
+		if IsValid( Frame.CL_PANEL ) then
+			Frame.CL_PANEL:Remove()
+		end
+		
+		if not IsValid( Frame.CT_PANEL ) then
+			local DPanel = vgui.Create( "DPanel", Frame )
+			DPanel:SetPos( 0, 45 )
+			DPanel:SetSize( 400, 175 )
+			DPanel.Paint = function(self, w, h ) 
+			end
+			Frame.CT_PANEL = DPanel
+			
+			local DButton = vgui.Create("DPanel",DPanel)
+			DButton:SetText("")
+			DButton:SetPos(200,0)
+			DButton:SetSize(200,20)
+			DButton.Paint = function(self, w, h ) 
+				draw.DrawText( "CONTROLS", "LFS_FONT", w * 0.5, -1, Color( 255, 255, 255, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+			end
+			
+			local DButton = vgui.Create("DButton",DPanel)
+			DButton:SetText("")
+			DButton:SetPos(0,0)
+			DButton:SetSize(201,20)
+			DButton.DoClick = function() 
+				surface.PlaySound( "buttons/button14.wav" )
+				simfphys.LFS.OpenClientSettings( Frame )
+			end
+			DButton.Paint = function(self, w, h ) 
+				local Highlight = self:IsHovered()
+				
+				surface.SetDrawColor(0,0,0,255)
+				surface.DrawRect(0, 0, w, h)
+				
+				surface.SetDrawColor( Highlight and Color( 120, 120, 120, 255 ) or Color( 80, 80, 80, 255 ) )
+				surface.DrawRect(1, 1, w - 2, h - 2)
+				
+				draw.DrawText( "SETTINGS", "LFS_FONT", w * 0.5, -1, Highlight and Color( 255, 255, 255, 255 ) or Color( 150, 150, 150, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+			end
+			
+			if cvarUnlockControls:GetInt() == 0 then
+				local DButton = vgui.Create("DButton",DPanel)
+				DButton:SetText("")
+				DButton:SetPos(1,25)
+				DButton:SetSize(399,130)
+				DButton.DoClick = function() 
+					surface.PlaySound( "buttons/button14.wav" )
+					
+					cvarUnlockControls:SetInt( 1 )
+					
+					if IsValid( Frame.CT_PANEL ) then
+						Frame.CT_PANEL:Remove()
+					end
+					simfphys.LFS.OpenControlSettings( Frame )
+					
+					LocalPlayer():lfsBuildControls()
+				end
+				DButton.Paint = function(self, w, h ) 
+					local Highlight = self:IsHovered()
+					draw.DrawText( "!!WARNING!!", "LFS_FONT_PANEL", 20, 10, Color( 255, 50, 50, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+					draw.DrawText( "By Default the vehicles use IN_ keys and since it was never intended to", "LFS_FONT_PANEL", 20, 30, Color( 255, 50, 50, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+					draw.DrawText( "allow rebinding this could cause problems or may not work properly", "LFS_FONT_PANEL", 20, 50, Color( 255, 50, 50, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+					draw.DrawText( "with some vehicles.", "LFS_FONT_PANEL", 20, 70, Color( 255, 50, 50, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+					
+					draw.DrawText( "CLICK ME TO UNLOCK KEY-BINDING", "LFS_FONT", w * 0.5, h * 0.5 + 30, Highlight and Color( 255, 255, 255, 255 ) or Color( 150, 150, 150, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+				end
+			else
+				local DScrollPanel = vgui.Create("DScrollPanel", DPanel)
+				DScrollPanel:SetPos(0,25)
+				DScrollPanel:SetSize(395,130)
+				
+				local TextHint = vgui.Create("DPanel",DScrollPanel)
+				TextHint:SetText("")
+				TextHint:SetPos(-5,5)
+				TextHint:SetSize(395,20)
+				TextHint.Paint = function(self, w, h ) 
+					draw.DrawText( "You need to re-enter the vehicle in order for the changes to take effect!", "LFS_FONT_PANEL", w * 0.5, -1, Color( 255, 50, 50, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+				end
+				
+				local y = 30
+				for _, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
+					local ConVar = GetConVar( v.cmd )
+					
+					local DLabel = vgui.Create("DLabel",DScrollPanel)
+					DLabel:SetPos(30,y)
+					DLabel:SetText(v.name_menu)
+					DLabel:SetSize(180,20)
+					
+					local DBinder = vgui.Create("DBinder",DScrollPanel)
+					DBinder:SetValue( ConVar:GetInt() )
+					DBinder:SetPos(240,y)
+					DBinder:SetSize(110,20)
+					DBinder.ConVar = ConVar
+					DBinder.OnChange = function(self,iNum)
+						self.ConVar:SetInt(iNum)
+						
+						LocalPlayer():lfsBuildControls()
+					end
+
+					y = y + 30
+				end
+				
+				local DButton = vgui.Create("DButton",DScrollPanel)
+				DButton:SetText("Reset")
+				DButton:SetPos(28,y)
+				DButton:SetSize(322,20)
+				DButton.DoClick = function() 
+					surface.PlaySound( "buttons/button14.wav" )
+					
+					cvarUnlockControls:SetInt( 0 )
+					
+					for _, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
+						GetConVar( v.cmd ):SetInt( v.default ) 
+					end
+					
+					if IsValid( Frame.CT_PANEL ) then
+						Frame.CT_PANEL:Remove()
+					end
+					
+					simfphys.LFS.OpenControlSettings( Frame )
+					
+					LocalPlayer():lfsBuildControls()
+				end
+			end
+		end
+	end
+	
+	function simfphys.LFS.OpenServerSettings( Frame )
 		IsClientSelected = false
 		
 		if IsValid( Frame.CL_PANEL ) then
 			Frame.CL_PANEL:Remove()
+		end
+		
+		if IsValid( Frame.CT_PANEL ) then
+			Frame.CT_PANEL:Remove()
 		end
 		
 		if not IsValid( Frame.SV_PANEL ) then
@@ -972,7 +1205,7 @@ if CLIENT then
 				
 				draw.DrawText( "v"..simfphys.LFS.GetVersion()..".GIT", "LFS_FONT_PANEL", w - 15, h - 20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM )
 			end
-			OpenClientSettings( Frame )
+			simfphys.LFS.OpenClientSettings( Frame )
 			
 			local DermaButton = vgui.Create( "DButton", Frame )
 			DermaButton:SetText( "" )
@@ -980,9 +1213,13 @@ if CLIENT then
 			DermaButton:SetSize( 200, 20 )
 			DermaButton.DoClick = function()
 				surface.PlaySound( "buttons/button14.wav" )
-				OpenClientSettings( Frame )
+				simfphys.LFS.OpenClientSettings( Frame )
 			end
 			DermaButton.Paint = function(self, w, h ) 
+				if not IsClientSelected and self:IsHovered() then
+					draw.RoundedBox( 4, 1, 1, w - 1, h - 1, Color( 120, 120, 120, 255 ) )
+				end
+				
 				local Col = (self:IsHovered() or IsClientSelected) and Color( 255, 255, 255, 255 ) or Color( 150, 150, 150, 255 )
 				draw.DrawText( "CLIENT", "LFS_FONT", w * 0.5, 0, Col, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
 			end
@@ -994,12 +1231,16 @@ if CLIENT then
 			DermaButton.DoClick = function()
 				if LocalPlayer():IsSuperAdmin() then
 					surface.PlaySound( "buttons/button14.wav" )
-					OpenServerSettings( Frame )
+					simfphys.LFS.OpenServerSettings( Frame )
 				else
 					surface.PlaySound( "buttons/button11.wav" )
 				end
 			end
 			DermaButton.Paint = function(self, w, h ) 
+				if IsClientSelected and self:IsHovered() then
+					draw.RoundedBox( 4, 1, 1, w - 2, h - 1, Color( 120, 120, 120, 255 ) )
+				end
+				
 				local Highlight = (self:IsHovered() or not IsClientSelected)
 				
 				local Col = Highlight and Color( 255, 255, 255, 255 ) or Color( 150, 150, 150, 255 )

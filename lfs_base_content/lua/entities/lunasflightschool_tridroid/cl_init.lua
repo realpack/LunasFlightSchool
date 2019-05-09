@@ -14,7 +14,7 @@ function ENT:ExhaustFX()
 	
 	local Driver = self:GetDriver()
 	if IsValid( Driver ) then
-		local W = Driver:KeyPressed( IN_FORWARD )
+		local W = Driver:lfsGetInput( "+THROTTLE" )
 		if W ~= self.oldW then
 			self.oldW = W
 			if W then
