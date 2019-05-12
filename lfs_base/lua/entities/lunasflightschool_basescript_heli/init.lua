@@ -39,14 +39,20 @@ local function CalcFlight( self )
 
 	local OnGround = self:HitGround()
 	
-	local W = false
-	local A = false
-	local S = OnGround
-	local D = false
+	local ThrInc = false
+	local ThrDec = OnGround
+	local PitchUp = false
+	local PitchDn = false
+	local YawL = false
+	local YawR = false
+	local RollL = false
+	local RollR = false
 	
 	local HoverMode  = false
 	
 	local TargetThrust = 0
+	
+	local FT = FrameTime()
 	
 	if IsValid( Driver ) then
 		EyeAngles = Pod:WorldToLocalAngles( Driver:EyeAngles() )
@@ -59,14 +65,21 @@ local function CalcFlight( self )
 			self.StoredEyeAngles = EyeAngles
 		end
 		
-		W = Driver:lfsGetInput( "+THROTTLE" )
-		A = Driver:lfsGetInput( "-ROLL" )
-		S = not W and OnGround or Driver:lfsGetInput( "-THROTTLE" )
-		D = Driver:lfsGetInput( "+ROLL" )
+		ThrInc = Driver:lfsGetInput( "+THROTTLE_HELI" )
+		ThrDec = not ThrInc and OnGround or Driver:lfsGetInput( "-THROTTLE_HELI" )
+		
+		PitchUp = Driver:lfsGetInput( "+PITCH_HELI" )
+		PitchDn = Driver:lfsGetInput( "-PITCH_HELI" )
+		
+		YawL  = Driver:lfsGetInput( "-YAW_HELI" )
+		YawR  = Driver:lfsGetInput( "+YAW_HELI" )
+		
+		RollL = Driver:lfsGetInput( "-ROLL_HELI" )
+		RollR = Driver:lfsGetInput( "+ROLL_HELI" )
 		
 		HoverMode = Driver:lfsGetInput( "HOVERMODE" )
 		
-		TargetThrust = self:GetMaxThrustHeli() * ((W and 1 or 0)  - (S and 1 or 0))
+		TargetThrust = self:GetMaxThrustHeli() * ((ThrInc and 1 or 0)  - (ThrDec and 1 or 0))
 	else
 		local HasAI = self:GetAI()
 		if HasAI then
@@ -84,7 +97,7 @@ local function CalcFlight( self )
 			
 			TargetThrust = math.Clamp( LPos.z -LocalVel.z,-self:GetMaxThrustHeli(),self:GetMaxThrustHeli())
 		else
-			TargetThrust = self:GetMaxThrustHeli() * ((W and 1 or 0)  - (S and 1 or 0))
+			TargetThrust = self:GetMaxThrustHeli() * ((ThrInc and 1 or 0)  - (ThrDec and 1 or 0))
 		end
 	end
 	
@@ -94,36 +107,50 @@ local function CalcFlight( self )
 	local cForce = self:GetZForce()
 	local Force = Vector(0,0,cForce * (1 - self:GetThrustEfficiency())) + self:GetUp() * (cForce * self:GetThrustEfficiency() - LocalVel.z * 0.01 + self.Thrust)
 	
-	self.Roll = self.Roll and self.Roll + ((D and MaxRoll or 0) - (A and MaxRoll or 0)) * FrameTime() or 0
+	--self.Pitch = (PitchDn or PitchUp) and (self.Pitch and self.Pitch + ((PitchDn and MaxPitch or 0) - (PitchUp and MaxPitch or 0)) * FT or EyeAngles.p) or EyeAngles.p
+	--self.Yaw = (YawR or YawL) and (self.Yaw and self.Yaw + ((YawL and MaxYaw or 0) - (YawR and MaxYaw or 0)) * FT or EyeAngles.y) or EyeAngles.y
+	
+	self.Roll = self.Roll and self.Roll + ((RollR and MaxRoll or 0) - (RollL and MaxRoll or 0)) * FT or 0
 
+	--local AngForce = self:WorldToLocalAngles( Angle(self.Pitch,self.Yaw,self.Roll) )
 	local AngForce = self:WorldToLocalAngles( Angle(EyeAngles.p,EyeAngles.y,self.Roll) )
 	
 	if HoverMode then
 		local P = math.Clamp(-LocalVel.x * 0.1,-40,40)
-		local Y = self:GetAngles().y
+		local Y = 0
 		local R = math.Clamp(LocalVel.y * 0.1,-40,40)
 		
-		if A or D then
-			R = (D and 60 or 0) - (A and 60 or 0)
+		if PitchUp or PitchDn then
+			P = (PitchDn and 40 or 0) - (PitchUp and 40 or 0)
 		end
 		
-		AngForce = self:WorldToLocalAngles( Angle(P,HasAI and Y or EyeAngles.y,R) )
+		if YawL or YawR then
+			Y = (YawL and 45 or 0) - (YawR and 45 or 0)
+		end
+		
+		if RollL or RollR then
+			R = (RollR and 60 or 0) - (RollL and 60 or 0)
+		end
+		
+		AngForce = self:WorldToLocalAngles( Angle(P,EyeAngles.y + Y,R) )
 		
 		self.Roll = 0
 	end
 
 	self:SetRPM( self:GetLimitRPM() * math.max((self.Thrust + cForce) / (self:GetMaxThrustHeli() + cForce),0.12) )
 	
-	AngForce.p = math.Clamp(AngForce.p,-MaxPitch,MaxPitch)
-	AngForce.y = math.Clamp(AngForce.y,-MaxYaw,MaxYaw)
-	AngForce.r = math.Clamp(AngForce.r + math.cos(CurTime()) * 2,-MaxRoll,MaxRoll)
+	local P = math.Clamp(AngForce.p,-MaxPitch,MaxPitch)
+	local Y = math.Clamp(AngForce.y,-MaxYaw,MaxYaw)
+	local R = math.Clamp(AngForce.r + math.cos(CurTime()) * 2,-MaxRoll,MaxRoll)
+	
+	AngForce.p,AngForce.y,AngForce.r = self:CalcFlightOverride( P, Y, R )
 	
 	PhysObj:ApplyForceCenter( Force * Mass )
 	
-	if (OnGround and (W or A or D or HoverMode)) or not OnGround then
-		self:ApplyAngForce( (AngForce * 2 - AngVel) * FrameTime() * Mass * 500 )
+	if (OnGround and (ThrInc or RollL or RollR or HoverMode)) or not OnGround then
+		self:ApplyAngForce( (AngForce * 2 - AngVel) * FT * Mass * 500 )
 	else
-		self:ApplyAngForce( -AngVel * Mass * FrameTime() * 500 )
+		self:ApplyAngForce( -AngVel * Mass * FT * 500 )
 	end
 	
 	self:SetRotPitch( AngForce.p / MaxPitch )

@@ -215,13 +215,13 @@ function ENT:HandleWeapons(Fire1, Fire2)
 	
 	if IsValid( Driver ) then
 		if self:GetAmmoPrimary() > 0 then
-			Fire1 = Driver:lfsGetInput( "PRI_ATTACK" )
+			Fire1 = Driver:KeyDown( IN_ATTACK )
 		end
 		
 		FireTurret = Driver:lfsGetInput( "FREELOOK" )
 		
 		if self:GetAmmoSecondary() > 0 then
-			Fire2 = Driver:lfsGetInput( "SEC_ATTACK" )
+			Fire2 = Driver:KeyDown( IN_ATTACK2 )
 		end
 	end
 	
@@ -234,7 +234,7 @@ function ENT:HandleWeapons(Fire1, Fire2)
 	end
 	
 	if HasGunner then
-		if Gunner:lfsGetInput( "PRI_ATTACK" ) then
+		if Gunner:KeyDown( IN_ATTACK ) then
 			self:AltPrimaryAttack( Gunner, self:GetGunnerSeat() )
 		end
 	end

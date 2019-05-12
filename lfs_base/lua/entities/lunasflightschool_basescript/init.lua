@@ -118,11 +118,11 @@ function ENT:HandleWeapons(Fire1, Fire2)
 	
 	if IsValid( Driver ) then
 		if self:GetAmmoPrimary() > 0 then
-			Fire1 = Driver:lfsGetInput( "PRI_ATTACK" )
+			Fire1 = Driver:KeyDown( IN_ATTACK )
 		end
 		
 		if self:GetAmmoSecondary() > 0 then
-			Fire2 = Driver:lfsGetInput( "SEC_ATTACK" )
+			Fire2 = Driver:KeyDown( IN_ATTACK2 )
 		end
 	end
 	
@@ -136,6 +136,10 @@ function ENT:HandleWeapons(Fire1, Fire2)
 end
 
 function ENT:OnTick()
+end
+
+function ENT:CalcFlightOverride( Pitch, Yaw, Roll )
+	return Pitch,Yaw,Roll
 end
 
 local function CalcFlight( self )
@@ -183,15 +187,20 @@ local function CalcFlight( self )
 		local Roll_R = Driver:lfsGetInput( "+ROLL" )
 		local Roll_L = Driver:lfsGetInput( "-ROLL" ) 
 		
-		if (Pitch_Up or Pitch_Dn or Yaw_R or Yaw_L) and not IsInVtolMode then
-			EyeAngles = self:GetAngles()
-			
-			self.StoredEyeAngles = Angle(EyeAngles.p,EyeAngles.y,0)
-			
-			local X = (Pitch_Up and -90 or 0) + (Pitch_Dn and 90 or 0)
-			local Y = (Yaw_R and -90 or 0) + (Yaw_L and 90 or 0)
-			
-			LocalAngles = Angle(X,Y,0)
+		if not IsInVtolMode then
+			if Pitch_Up or Pitch_Dn then
+				EyeAngles = self:GetAngles()
+				
+				self.StoredEyeAngles = Angle(EyeAngles.p,EyeAngles.y,0)
+				
+				local X = (Pitch_Up and -90 or 0) + (Pitch_Dn and 90 or 0)
+
+				LocalAngles = Angle(X,0,0)
+			end
+
+			if Yaw_R or Yaw_L then
+				LocalAngles.y = (Yaw_R and -90 or 0) + (Yaw_L and 90 or 0)
+			end
 		end
 		
 		if Yaw_R or Yaw_L then
@@ -251,9 +260,11 @@ local function CalcFlight( self )
 	
 	local AutoRoll = (-LocalAngYaw * 22 * RollRate + LocalAngRoll * 3.5 * RudderFadeOut) * WingFinFadeOut
 	
-	local Roll = math.Clamp( (not A and not D) and AutoRoll or ManualRoll,-MaxRoll ,MaxRoll )
-	local Yaw = math.Clamp(-LocalAngYaw * 160 * RudderFadeOut,-MaxYaw,MaxYaw)
-	local Pitch = math.Clamp(-LocalAngPitch * 25,-MaxPitch,MaxPitch)
+	local P = math.Clamp(-LocalAngPitch * 25,-MaxPitch,MaxPitch)
+	local Y = math.Clamp(-LocalAngYaw * 160 * RudderFadeOut,-MaxYaw,MaxYaw)
+	local R = math.Clamp( (not A and not D) and AutoRoll or ManualRoll,-MaxRoll ,MaxRoll )
+	
+	local Pitch,Yaw,Roll = self:CalcFlightOverride( P, Y, R )
 	
 	local WingVel = self:GetWingVelocity()
 	local ElevatorVel = self:GetElevatorVelocity()

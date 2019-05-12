@@ -6,8 +6,10 @@ local meta = FindMetaTable( "Player" )
 simfphys = istable( simfphys ) and simfphys or {} -- lets check if the simfphys table exists. if not, create it!
 simfphys.LFS = {} -- lets add another table for this project. We will be storing all our global functions and variables here. LFS means LunasFlightSchool
 
-simfphys.LFS.VERSION = 133 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 136)
+simfphys.LFS.VERSION = 134 -- note to self: Workshop is 10-version increments ahead. (next workshop update at 136)
 
+simfphys.LFS.KEYS_IN = {}
+simfphys.LFS.KEYS_DEFAULT = {}
 simfphys.LFS.PlanesStored = {}
 simfphys.LFS.NextPlanesGetAll = 0
 simfphys.LFS.IgnorePlayers = cVar_playerignore and cVar_playerignore:GetBool() or false
@@ -18,43 +20,45 @@ simfphys.LFS.PlayerDefaultTeam = CreateConVar( "lfs_default_teams", "0", {FCVAR_
 simfphys.LFS.pSwitchKeys = {[KEY_1] = 1,[KEY_2] = 2,[KEY_3] = 3,[KEY_4] = 4,[KEY_5] = 5,[KEY_6] = 6,[KEY_7] = 7,[KEY_8] = 8,[KEY_9] = 9,[KEY_0] = 10}
 simfphys.LFS.pSwitchKeysInv = {[1] = KEY_1,[2] = KEY_2,[3] = KEY_3,[4] = KEY_4,[5] = KEY_5,[6] = KEY_6,[7] = KEY_7,[8] = KEY_8,[9] = KEY_9,[10] = KEY_0}
 
-simfphys.LFS.KEYS_DEFAULT = {
-	{name = "+THROTTLE",		name_menu = "Throttle Increase",	default = KEY_W,		cmd = "cl_lfs_throttle_inc"},
-	{name = "-THROTTLE",		name_menu = "Throttle Decrease",	default = KEY_S,		cmd = "cl_lfs_throttle_dec"},
+function simfphys.LFS:AddKey(name, class, name_menu, default, cmd, IN_KEY)
+	table.insert( simfphys.LFS.KEYS_DEFAULT, {name = name, class = class, name_menu = name_menu, default = default, cmd = cmd, IN_KEY = IN_KEY} )
+	simfphys.LFS.KEYS_IN[name] = IN_KEY
 	
-	{name = "+PITCH",			name_menu = "Pitch Up",			default = KEY_LSHIFT,	cmd = "cl_lfs_pitch_up"},
-	{name = "-PITCH",			name_menu = "Pitch Down",		default = KEY_LCONTROL ,	cmd = "cl_lfs_pitch_Down"},
-	{name = "-YAW",			name_menu = "Yaw Left",			default = KEY_Q,		cmd = "cl_lfs_yaw_left"},
-	{name = "+YAW",			name_menu = "Yaw Right",		default = KEY_E,		cmd = "cl_lfs_yaw_right"},
-	{name = "-ROLL",			name_menu = "Roll Left",			default = KEY_A,		cmd = "cl_lfs_roll_left"},
-	{name = "+ROLL",			name_menu = "Roll Right",			default = KEY_D,		cmd = "cl_lfs_roll_right"},
-	
-	{name = "ENGINE",			name_menu = "Toggle Engine",		default = KEY_R,		cmd = "cl_lfs_toggle_engine"},
-	{name = "VSPEC",			name_menu = "Toggle Misc",		default = KEY_SPACE,	cmd = "cl_lfs_toggle_vspecific"},
-	{name = "FREELOOK",		name_menu = "Freelook",			default = KEY_LALT,		cmd = "cl_lfs_freelook"},
-	
-	{name = "PRI_ATTACK",		name_menu = "Primary Attack",		default = MOUSE_LEFT,	cmd = "cl_lfs_primaryattack"},
-	{name = "SEC_ATTACK",		name_menu = "Secondary Attack",	default = MOUSE_RIGHT,	cmd = "cl_lfs_secondaryattack"},
-	
-	{name = "HOVERMODE",		name_menu = "Helicopter Hovermode",default = KEY_H,		cmd = "cl_lfs_heli_hover"},
-}
+	if CLIENT then
+		CreateClientConVar( cmd, default, true, true )
+	end
+end
 
-simfphys.LFS.KEYS_IN = {
-	["+THROTTLE"] = IN_FORWARD,
-	["-THROTTLE"] = IN_BACK,
-	["+PITCH"] = IN_SPEED,
-	["HOVERMODE"] = IN_SPEED,
-	["-PITCH"] = 0,
-	["+Yaw"] = 0,
-	["-Yaw"] = 0,
-	["-ROLL"] = IN_MOVELEFT,
-	["+ROLL"] = IN_MOVERIGHT,
-	["ENGINE"] = IN_RELOAD,
-	["VSPEC"] = IN_JUMP,
-	["FREELOOK"] = IN_WALK,
-	["PRI_ATTACK"] = IN_ATTACK,
-	["SEC_ATTACK"] = IN_ATTACK2,
+local DEFAULT_KEYS = {
+	{name = "EXIT",			class = "misc",		name_menu = "Exit Vehicle",		default = KEY_J,		cmd = "cl_lfs_exit",					IN_KEY = 0},
+	{name = "FREELOOK",		class = "misc",		name_menu = "Freelook (Hold)",	default = KEY_LALT,		cmd = "cl_lfs_freelook",				IN_KEY = IN_WALK},
+	{name = "ENGINE",			class = "misc",		name_menu = "Toggle Engine",		default = KEY_R,		cmd = "cl_lfs_toggle_engine",			IN_KEY = IN_RELOAD},
+	{name = "VSPEC",			class = "misc",		name_menu = "Toggle Vehicle-specific Function",	default = KEY_SPACE,	cmd = "cl_lfs_toggle_vspecific",	IN_KEY = IN_JUMP},
+	--{name = "PRI_ATTACK",		class = "misc",		name_menu = "Primary Attack",		default = MOUSE_LEFT,	cmd = "cl_lfs_primaryattack",	IN_KEY = IN_ATTACK},
+	--{name = "SEC_ATTACK",		class = "misc",		name_menu = "Secondary Attack",	default = MOUSE_RIGHT,	cmd = "cl_lfs_secondaryattack",	IN_KEY = IN_ATTACK2},
+	
+	{name = "+THROTTLE",		class = "plane",		name_menu = "Throttle Increase",	default = KEY_W,		cmd = "cl_lfs_throttle_inc",	IN_KEY = IN_FORWARD},
+	{name = "-THROTTLE",		class = "plane",		name_menu = "Throttle Decrease",	default = KEY_S,		cmd = "cl_lfs_throttle_dec",	IN_KEY = IN_BACK},
+	{name = "+PITCH",			class = "plane",		name_menu = "Pitch Up",			default = KEY_LSHIFT,	cmd = "cl_lfs_pitch_up",		IN_KEY = IN_SPEED},
+	{name = "-PITCH",			class = "plane",		name_menu = "Pitch Down",		default = KEY_LCONTROL ,	cmd = "cl_lfs_pitch_Down",	IN_KEY = 0},
+	{name = "-YAW",			class = "plane",		name_menu = "Yaw Left",			default = KEY_Q,		cmd = "cl_lfs_yaw_left",		IN_KEY = 0},
+	{name = "+YAW",			class = "plane",		name_menu = "Yaw Right",		default = KEY_E,		cmd = "cl_lfs_yaw_right",		IN_KEY = 0},
+	{name = "-ROLL",			class = "plane",		name_menu = "Roll Left",			default = KEY_A,		cmd = "cl_lfs_roll_left",		IN_KEY = IN_MOVELEFT},
+	{name = "+ROLL",			class = "plane",		name_menu = "Roll Right",			default = KEY_D,		cmd = "cl_lfs_roll_right",		IN_KEY = IN_MOVERIGHT},
+	
+	{name = "+THROTTLE_HELI",	class = "heli",		name_menu = "Throttle Increase",			default = KEY_W,		cmd = "cl_lfsheli_throttle_inc",	IN_KEY = IN_FORWARD},
+	{name = "-THROTTLE_HELI",	class = "heli",		name_menu = "Throttle Decrease",			default = KEY_S,		cmd = "cl_lfsheli_throttle_dec",	IN_KEY = IN_BACK},
+	{name = "+PITCH_HELI",		class = "heli",		name_menu = "Pitch Up (Hovermode Only)",	default = KEY_LCONTROL,	cmd = "cl_lfsheli_pitch_up",	IN_KEY = 0},
+	{name = "-PITCH_HELI",		class = "heli",		name_menu = "Pitch Down (Hovermode Only)",	default = KEY_LSHIFT ,	cmd = "cl_lfsheli_pitch_Down",	IN_KEY = 0},
+	{name = "-YAW_HELI",		class = "heli",		name_menu = "Yaw Left (Hovermode Only)",	default = KEY_Q,		cmd = "cl_lfsheli_yaw_left",	IN_KEY = 0},
+	{name = "+YAW_HELI",		class = "heli",		name_menu = "Yaw Righ (Hovermode Only)",	default = KEY_E,		cmd = "cl_lfsheli_yaw_right",	IN_KEY = 0},
+	{name = "-ROLL_HELI",		class = "heli",		name_menu = "Roll Left",					default = KEY_A,		cmd = "cl_lfsheli_roll_left",		IN_KEY = IN_MOVELEFT},
+	{name = "+ROLL_HELI",		class = "heli",		name_menu = "Roll Right",					default = KEY_D,		cmd = "cl_lfsheli_roll_right",	IN_KEY = IN_MOVERIGHT},
+	{name = "HOVERMODE",		class = "heli",		name_menu = "Helicopter Hovermode",		default = KEY_SPACE,	cmd = "cl_lfsheli_hover",		IN_KEY = IN_SPEED},
 }
+for _, v in pairs( DEFAULT_KEYS ) do 
+	simfphys.LFS:AddKey( v.name, v.class,  v.name_menu, v.default, v.cmd, v.IN_KEY )
+end
 
 simfphys.LFS.NotificationVoices = {["RANDOM"] = "0",["LFSORIGINAL"] = "1",["Charles"] = "2",["Grace"] = "3",["Darren"] = "4",["Susan"] = "5",["Graham"] = "6",["Peter"] = "7",["Rachel"] = "8",["Gabriel"] = "9",["Gabriella"] = "10",["Rod"] = "11",["Mike"] = "12",["Sharon"] = "13",["Tim"] = "14",["Ryan"] = "15",["Tracy"] = "16",["Amanda"] = "17",["Selene"] = "18",["Audrey"] = "19"}
 
@@ -141,17 +145,23 @@ end
 function meta:lfsBuildControls()
 	if istable( self.LFS_BINDS ) then
 		table.Empty( self.LFS_BINDS )
-	else
-		self.LFS_BINDS = {}
 	end
 	
 	if SERVER then
+		self.LFS_BINDS = {
+			["misc"] = {},
+			["plane"] = {},
+			["heli"] = {},
+		}
+		
 		self.LFS_HIPSTER = self:GetInfoNum( "lfs_hipster", 0 ) == 1
 		
 		for _,v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
-			self.LFS_BINDS[ self:GetInfoNum( v.cmd, 0 ) ] = v.name
+			self.LFS_BINDS[v.class][ self:GetInfoNum( v.cmd, 0 ) ] = v.name
 		end
 	else
+		self.LFS_BINDS = {}
+		
 		self.LFS_HIPSTER = GetConVar( "lfs_hipster" ):GetBool()
 		
 		for _,v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
@@ -168,6 +178,16 @@ function meta:lfsGetControls()
 	return self.LFS_BINDS
 end
 
+local IS_MOUSE_ENUM = {
+	[MOUSE_LEFT] = true,
+	[MOUSE_RIGHT] = true,
+	[MOUSE_MIDDLE] = true,
+	[MOUSE_4] = true,
+	[MOUSE_5] = true,
+	[MOUSE_WHEEL_UP] = true,
+	[MOUSE_WHEEL_DOWN ] = true,
+}
+
 function meta:lfsGetInput( name )
 	if self.LFS_HIPSTER then
 		if SERVER then
@@ -175,13 +195,25 @@ function meta:lfsGetInput( name )
 			
 			return self.LFS_KEYDOWN[ name ]
 		else
-			return input.IsKeyDown( self:lfsGetControls()[ name ] ) 
+			local Key = self:lfsGetControls()[ name ]
+			
+			if IS_MOUSE_ENUM[ Key ] then
+				return input.IsMouseDown( Key ) 
+			else
+				return input.IsKeyDown( Key ) 
+			end
 		end
 	else
-		if simfphys.LFS.KEYS_IN[ name ] then
-			return self:KeyDown( simfphys.LFS.KEYS_IN[ name ] )
-		else
+		if self.LFS_HIPSTER == nil then -- something went wrong.
+			self:lfsBuildControls()
+			
 			return false
+		else
+			if simfphys.LFS.KEYS_IN[ name ] then
+				return self:KeyDown( simfphys.LFS.KEYS_IN[ name ] )
+			else
+				return false
+			end
 		end
 	end
 end
@@ -256,20 +288,30 @@ if SERVER then
 		self.LFS_KEYDOWN = self.LFS_KEYDOWN and self.LFS_KEYDOWN or {}
 		self.LFS_KEYDOWN[ name ] = value
 	end
-
+	
+	hook.Add("CanExitVehicle","!!!lfsCanExitVehicle",function(vehicle,ply)
+		if IsValid( ply:lfsGetPlane() ) then return not ply.LFS_HIPSTER end
+	end)
+	
 	hook.Add( "PlayerButtonUp", "!!!lfsButtonUp", function( ply, button )
-		local LFS_BINDS = ply:lfsGetControls()
-		
-		if LFS_BINDS[ button ] then
-			ply:lfsSetInput( LFS_BINDS[button], false )
+		for _, LFS_BIND in pairs( ply:lfsGetControls() ) do
+			if LFS_BIND[ button ] then
+				ply:lfsSetInput( LFS_BIND[ button ], false )
+			end
 		end
 	end )
 	
 	hook.Add( "PlayerButtonDown", "!!!lfsButtonDown", function( ply, button )
-		local LFS_BINDS = ply:lfsGetControls()
-		
-		if LFS_BINDS[ button ] then
-			ply:lfsSetInput( LFS_BINDS[button], true )
+		for _, LFS_BIND in pairs( ply:lfsGetControls() ) do
+			if LFS_BIND[ button ] then
+				ply:lfsSetInput( LFS_BIND[ button ], true )
+				
+				if ply.LFS_HIPSTER then
+					if LFS_BIND[ button ] == "EXIT" then
+						ply:ExitVehicle()
+					end
+				end
+			end
 		end
 		
 		local vehicle = ply:lfsGetPlane()
@@ -454,8 +496,7 @@ if CLIENT then
 	local cvarNotificationVoice = CreateClientConVar( "lfs_notification_voice", "RANDOM", true, false)
 	local ShowPlaneIdent = cvarShowPlaneIdent and cvarShowPlaneIdent:GetBool() or true
 	local cvarUnlockControls = CreateClientConVar( "lfs_hipster", 0, true, true)
-	
-	for k, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do CreateClientConVar( v.cmd, v.default, true, true ) end
+	local cvarDisableQMENU = CreateClientConVar( "lfs_qmenudisable", 1, true, false)
 	
 	function simfphys.LFS.PlayNotificationSound()
 		local soundfile = simfphys.LFS.NotificationVoices[GetConVar( "lfs_notification_voice" ):GetString()]
@@ -466,6 +507,15 @@ if CLIENT then
 			surface.PlaySound( "lfs/notification/"..soundfile..".ogg" )
 		end
 	end
+	
+	hook.Add("SpawnMenuOpen", "!!!lfsDisableSpawnmenu", function()
+		local ply = LocalPlayer() 
+		
+		if not ply.LFS_HIPSTER then return end
+		if not IsValid( ply:lfsGetPlane() ) then return end
+		
+		return not cvarDisableQMENU:GetBool()
+	end)
 
 	local HintPlayerAboutHisFuckingIncompetence = true
 	local smTran = 0
@@ -1079,28 +1129,123 @@ if CLIENT then
 					draw.DrawText( "You need to re-enter the vehicle in order for the changes to take effect!", "LFS_FONT_PANEL", w * 0.5, -1, Color( 255, 50, 50, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
 				end
 				
-				local y = 30
-				for _, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
-					local ConVar = GetConVar( v.cmd )
-					
-					local DLabel = vgui.Create("DLabel",DScrollPanel)
-					DLabel:SetPos(30,y)
-					DLabel:SetText(v.name_menu)
-					DLabel:SetSize(180,20)
-					
-					local DBinder = vgui.Create("DBinder",DScrollPanel)
-					DBinder:SetValue( ConVar:GetInt() )
-					DBinder:SetPos(240,y)
-					DBinder:SetSize(110,20)
-					DBinder.ConVar = ConVar
-					DBinder.OnChange = function(self,iNum)
-						self.ConVar:SetInt(iNum)
-						
-						LocalPlayer():lfsBuildControls()
-					end
-
-					y = y + 30
+				local y  = 30
+				
+				local CheckBox = vgui.Create( "DCheckBoxLabel",DScrollPanel)
+				CheckBox:SetText( "Disable Q-Menu while inside Vehicle" )
+				CheckBox:SetConVar("lfs_qmenudisable") 
+				CheckBox:SizeToContents()
+				CheckBox:SetPos( 27, y )
+				
+				y = y + 30
+				
+				local TextHint = vgui.Create("DPanel",DScrollPanel)
+				TextHint:SetText("")
+				TextHint:SetPos(27,y)
+				TextHint:SetSize(200,30)
+				TextHint.Paint = function(self, w, h ) 
+					draw.DrawText( "MISC", "LFS_FONT", 0, 0, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
 				end
+				
+				y = y + 30
+				
+				for _, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
+					if v.class == "misc" then
+						local ConVar = GetConVar( v.cmd )
+						
+						local DLabel = vgui.Create("DLabel",DScrollPanel)
+						DLabel:SetPos(30,y)
+						DLabel:SetText(v.name_menu)
+						DLabel:SetSize(180,20)
+						
+						local DBinder = vgui.Create("DBinder",DScrollPanel)
+						DBinder:SetValue( ConVar:GetInt() )
+						DBinder:SetPos(240,y)
+						DBinder:SetSize(110,20)
+						DBinder.ConVar = ConVar
+						DBinder.OnChange = function(self,iNum)
+							self.ConVar:SetInt(iNum)
+							
+							LocalPlayer():lfsBuildControls()
+						end
+
+						y = y + 30
+					end
+				end
+				
+				y = y + 15
+				
+				local TextHint = vgui.Create("DPanel",DScrollPanel)
+				TextHint:SetText("")
+				TextHint:SetPos(27,y)
+				TextHint:SetSize(200,30)
+				TextHint.Paint = function(self, w, h ) 
+					draw.DrawText( "PLANE", "LFS_FONT", 0, 0, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+				end
+				
+				y = y + 30
+				
+				for _, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
+					if v.class == "plane" then
+						local ConVar = GetConVar( v.cmd )
+						
+						local DLabel = vgui.Create("DLabel",DScrollPanel)
+						DLabel:SetPos(30,y)
+						DLabel:SetText(v.name_menu)
+						DLabel:SetSize(180,20)
+						
+						local DBinder = vgui.Create("DBinder",DScrollPanel)
+						DBinder:SetValue( ConVar:GetInt() )
+						DBinder:SetPos(240,y)
+						DBinder:SetSize(110,20)
+						DBinder.ConVar = ConVar
+						DBinder.OnChange = function(self,iNum)
+							self.ConVar:SetInt(iNum)
+							
+							LocalPlayer():lfsBuildControls()
+						end
+
+						y = y + 30
+					end
+				end
+				
+				y = y + 15
+				
+				local TextHint = vgui.Create("DPanel",DScrollPanel)
+				TextHint:SetText("")
+				TextHint:SetPos(27,y)
+				TextHint:SetSize(200,30)
+				TextHint.Paint = function(self, w, h ) 
+					draw.DrawText( "HELICOPTER", "LFS_FONT", 0, 0, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER )
+				end
+				
+				y = y + 30
+				
+				for _, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do
+					if v.class == "heli" then
+						local ConVar = GetConVar( v.cmd )
+						
+						local DLabel = vgui.Create("DLabel",DScrollPanel)
+						DLabel:SetPos(30,y)
+						DLabel:SetText(v.name_menu)
+						DLabel:SetSize(180,20)
+						
+						local DBinder = vgui.Create("DBinder",DScrollPanel)
+						DBinder:SetValue( ConVar:GetInt() )
+						DBinder:SetPos(240,y)
+						DBinder:SetSize(110,20)
+						DBinder.ConVar = ConVar
+						DBinder.OnChange = function(self,iNum)
+							self.ConVar:SetInt(iNum)
+							
+							LocalPlayer():lfsBuildControls()
+						end
+
+						y = y + 30
+					end
+				end
+				
+				y = y + 15
 				
 				local DButton = vgui.Create("DButton",DScrollPanel)
 				DButton:SetText("Reset")
@@ -1109,6 +1254,7 @@ if CLIENT then
 				DButton.DoClick = function() 
 					surface.PlaySound( "buttons/button14.wav" )
 					
+					cvarDisableQMENU:SetBool( true )
 					cvarUnlockControls:SetInt( 0 )
 					
 					for _, v in pairs( simfphys.LFS.KEYS_DEFAULT ) do

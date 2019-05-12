@@ -20,6 +20,12 @@ end
 function ENT:OnTick() -- use this instead of "think"
 end
 
+--[[
+function ENT:CalcFlightOverride( Pitch, Yaw, Roll ) -- overwrite flight mechanics?
+	return Pitch,Yaw,Roll
+end
+]]--
+
 function ENT:RunOnSpawn() -- called when the vehicle is spawned
 	--[[
 	local SpawnedPod = self:AddPassengerSeat( Vector(0,0,50), Angle(0,-90,0) ) -- add a passenger seat, store it inside "SpawnedPod" local variable
