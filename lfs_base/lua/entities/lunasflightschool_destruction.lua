@@ -49,7 +49,7 @@ if SERVER then
 			if IsValid( ent ) then
 				table.insert( self.Gibs, ent ) 
 				
-				ent:SetPos( self:GetPos() + VectorRand() * 100 )
+				ent:SetPos( self:GetPos() )
 				ent:SetAngles( self:LocalToWorldAngles( VectorRand():Angle() ) )
 				ent:SetModel( v )
 				ent:Spawn()

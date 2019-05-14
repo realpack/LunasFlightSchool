@@ -73,11 +73,16 @@ function ENT:CheckEngineState()
 	local Active = self:GetEngineActive()
 	
 	if Active then
-		local CurDist = (LocalPlayer():GetViewEntity():GetPos() - self:GetPos()):Length()
-		self.PitchOffset = self.PitchOffset and self.PitchOffset + (math.Clamp((CurDist - self.OldDist) * FrameTime() * 150,-40,40) - self.PitchOffset) * FrameTime() * 5 or 0
-		self.OldDist = CurDist
 		local RPM = self:GetRPM()
-		local Pitch = (RPM - self:GetIdleRPM()) / (self:GetLimitRPM() - self:GetIdleRPM())
+		local LimitRPM = self:GetLimitRPM()
+		
+		local tPer = RPM / LimitRPM
+		
+		local CurDist = (LocalPlayer():GetViewEntity():GetPos() - self:GetPos()):Length()
+		self.PitchOffset = self.PitchOffset and self.PitchOffset + (math.Clamp((CurDist - self.OldDist) * FrameTime() * 300,-40,20 *  tPer) - self.PitchOffset) * FrameTime() * 5 or 0
+		self.OldDist = CurDist
+		
+		local Pitch = (RPM - self:GetIdleRPM()) / (LimitRPM - self:GetIdleRPM())
 		
 		self:CalcEngineSound( RPM, Pitch, -self.PitchOffset )
 	end

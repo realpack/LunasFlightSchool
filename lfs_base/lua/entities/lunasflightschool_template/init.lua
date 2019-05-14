@@ -21,8 +21,8 @@ function ENT:OnTick() -- use this instead of "think"
 end
 
 --[[
-function ENT:CalcFlightOverride( Pitch, Yaw, Roll ) -- overwrite flight mechanics?
-	return Pitch,Yaw,Roll
+function ENT:CalcFlightOverride( Pitch, Yaw, Roll, Stability ) -- overwrite flight mechanics?
+	return Pitch,Yaw,Roll,Stability,Stability,Stability
 end
 ]]--
 

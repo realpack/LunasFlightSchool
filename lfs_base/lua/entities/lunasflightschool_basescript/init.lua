@@ -138,8 +138,8 @@ end
 function ENT:OnTick()
 end
 
-function ENT:CalcFlightOverride( Pitch, Yaw, Roll )
-	return Pitch,Yaw,Roll
+function ENT:CalcFlightOverride( Pitch, Yaw, Roll, Stability )
+	return Pitch,Yaw,Roll,Stability,Stability,Stability
 end
 
 local function CalcFlight( self )
@@ -264,21 +264,17 @@ local function CalcFlight( self )
 	local Y = math.Clamp(-LocalAngYaw * 160 * RudderFadeOut,-MaxYaw,MaxYaw)
 	local R = math.Clamp( (not A and not D) and AutoRoll or ManualRoll,-MaxRoll ,MaxRoll )
 	
-	local Pitch,Yaw,Roll = self:CalcFlightOverride( P, Y, R )
-	
-	local WingVel = self:GetWingVelocity()
-	local ElevatorVel = self:GetElevatorVelocity()
-	local RudderVel = self:GetRudderVelocity()
+	local Pitch,Yaw,Roll,StabW,StabE,StabR = self:CalcFlightOverride( P, Y, R, Stability )
 	
 	local Mass = PhysObj:GetMass()
 	
-	self:ApplyAngForce( Angle(0,0,-self:GetAngVel().r + Roll * Stability) *  Mass * 500 * Stability )
+	self:ApplyAngForce( Angle(0,0,-self:GetAngVel().r + Roll * StabW) *  Mass * 500 * StabW )
 	
-	PhysObj:ApplyForceOffset( -self:GetWingUp() * WingVel *  Mass * Stability, self:GetWingPos() )
+	PhysObj:ApplyForceOffset( -self:GetWingUp() * self:GetWingVelocity() *  Mass * StabW, self:GetWingPos() )
 	
-	PhysObj:ApplyForceOffset( -self:GetElevatorUp() * (ElevatorVel + Pitch * Stability) * Mass * Stability, self:GetElevatorPos() )
+	PhysObj:ApplyForceOffset( -self:GetElevatorUp() * (self:GetElevatorVelocity() + Pitch * StabE) * Mass * StabE, self:GetElevatorPos() )
 	
-	PhysObj:ApplyForceOffset( -self:GetRudderUp() * (math.Clamp(RudderVel,-MaxYaw,MaxYaw) + Yaw * Stability) *  Mass * Stability, self:GetRudderPos() )
+	PhysObj:ApplyForceOffset( -self:GetRudderUp() * (math.Clamp(self:GetRudderVelocity(),-MaxYaw,MaxYaw) + Yaw * StabR) *  Mass * StabR, self:GetRudderPos() )
     
 	if self:IsSpaceShip() then
 		PhysObj:ApplyForceCenter( self:GetRight() * self:WorldToLocal( self:GetPos() + self:GetVelocity() ).y * Mass * 0.01 )
@@ -400,11 +396,11 @@ function ENT:HandleEngine()
 	
 	if not IsValid( PhysObj ) then return end
 	
-	local fThrust = MaxVelocity * (self:GetRPM() / self:GetLimitRPM()) - self:GetForwardVelocity()
+	local fThrust = MaxVelocity * (self:GetRPM() / LimitRPM) - self:GetForwardVelocity()
 	
 	if not self:IsSpaceShip() and not self:GetAI() then fThrust = math.max( fThrust ,0 ) end
 	
-	local Force = fThrust / MaxVelocity * self:GetMaxThrust() * self:GetLimitRPM() * FrameTime()
+	local Force = fThrust / MaxVelocity * self:GetMaxThrust() * LimitRPM * FrameTime()
 	
 	if self:IsDestroyed() or not EngActive then
 		self:StopEngine()
@@ -1279,7 +1275,7 @@ function ENT:OnTakeDamage( dmginfo )
 			self:dOwner( self.particleeffect )
 			
 			if self:GetAI() then
-				timer.Simple( math.Rand(0,8), function()
+				timer.Simple( 8, function()
 					if not IsValid( self ) then return end
 					self:Explode()
 				end)
@@ -1294,7 +1290,7 @@ function ENT:PrepExplode()
 	end
 	
 	if self:IsDestroyed() then
-		if self:GetVelocity():Length() < 500 then
+		if self:GetVelocity():Length() < 800 then
 			self:Explode()
 		end
 	end
@@ -1329,7 +1325,7 @@ function ENT:Explode()
 	
 	local ent = ents.Create( "lunasflightschool_destruction" )
 	if IsValid( ent ) then
-		ent:SetPos( self:GetPos() + Vector(0,0,100) )
+		ent:SetPos( self:LocalToWorld( self:OBBCenter() ) )
 		ent.GibModels = self.GibModels
 		
 		ent:Spawn()
